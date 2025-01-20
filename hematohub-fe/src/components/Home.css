@@ -1,0 +1,37 @@
+.home-container {
+  text-align: center;
+  padding: 50px;
+  max-width: 400px;
+  margin: auto;
+  margin-top: 50px;
+  background: rgba(255, 255, 255, 0.9); /* Slight transparency */
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.login-area {
+  margin-top: 30px;
+}
+
+.login-area input {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-area button {
+  padding: 10px 20px;
+  background-color: #f81616;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-area button:hover {
+  background-color: #b12121;
+}
