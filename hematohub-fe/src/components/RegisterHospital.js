@@ -11,10 +11,13 @@ const RegisterHospital = () => {
 
   const handleRegister = (e) => {
     e.preventDefault();
+    
     const hospitalData = { hospitalName, location, email, password };
     localStorage.setItem("hospital", JSON.stringify(hospitalData));
-    alert("Hospital Registered Successfully!");
-    navigate("/login");
+    localStorage.setItem("userType", "hospital");
+
+    alert("Hospital Registered Successfully! Redirecting to Hospital Dashboard.");
+    window.open("/hospital-dashboard", "_blank"); // Open in a new tab
   };
 
   return (

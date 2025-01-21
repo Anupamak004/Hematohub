@@ -11,10 +11,13 @@ const RegisterDonor = () => {
 
   const handleRegister = (e) => {
     e.preventDefault();
+    
     const donorData = { name, bloodType, email, password };
     localStorage.setItem("donor", JSON.stringify(donorData));
-    alert("Donor Registered Successfully!");
-    navigate("/login");
+    localStorage.setItem("userType", "donor");
+
+    alert("Donor Registered Successfully! Redirecting to Donor Dashboard.");
+    window.open("/donor-dashboard", "_blank"); // Open in a new tab
   };
 
   return (
