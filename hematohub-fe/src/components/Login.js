@@ -16,7 +16,7 @@ const Login = () => {
     if (donorData && donorData.email === email && donorData.password === password) {
       localStorage.setItem("userType", "donor");
       alert("Login Successful! Redirecting to Donor Dashboard.");
-      window.open("/donor-dashboard", "_blank"); // Open in new tab
+      navigate('/donor-dashboard');// Open in new tab
     } 
     else if (hospitalData && hospitalData.email === email && hospitalData.password === password) {
       localStorage.setItem("userType", "hospital");

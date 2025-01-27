@@ -1,37 +1,66 @@
-.home-container {
+.introduction-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   text-align: center;
-  padding: 50px;
-  max-width: 400px;
-  margin-left: auto;
-  margin-top: 50px;
-  background: rgba(255, 255, 255, 0.9); /* Slight transparency */
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  background-image: url("../assets/onebackground.jpg");
+  background-size: cover; /* Ensures the image covers the entire viewport */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents tiling (grid effect) */
+  background-attachment: scroll;
+}
+
+/* Content Box */
+.intro-content {
+  max-width: 500px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.3); /* Slight transparency */
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   position: relative;
   z-index: 2;
+  margin-right: auto;
 }
 
-.login-area {
+/* Headings */
+.intro-content h1 {
+  color: #bd1913;
+  margin-bottom: 20px;
+}
+
+.intro-content p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #0e0e0e;
+}
+
+/* Buttons */
+.intro-buttons {
   margin-top: 30px;
 }
 
-.login-area input {
-  padding: 10px;
-  margin: 10px 0;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.login-area button {
+.intro-buttons button {
   padding: 10px 20px;
-  background-color: #f81616;
-  color: white;
+  margin: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  background-color: #e72020;
+  color: white;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
 
-.login-area button:hover {
+.intro-buttons button:hover {
   background-color: #b12121;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .intro-content {
+    width: 90%;
+    padding: 30px;
+  }
 }

@@ -2,13 +2,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #d32f2f;
-    padding: 15px 30px;
+    background: #aa1515;
+    padding: 10px 30px;
     color: white;
   }
   
   .navbar h2 {
-    margin: 0;
+    margin-right: auto;
     color: rgb(255, 255, 255);
   }
   
@@ -33,4 +33,11 @@
   .navbar a:hover {
     color: #ffccbc;
   }
+  
+  .logo-img {
+    width: 60px;  /* Adjust the size of your logo */
+    height: auto;
+    margin-right: 5px;  /* Spacing between logo and text */
+  }
+  
   

@@ -5,7 +5,9 @@ import "./Navbar.css";
 const Navbar = () => {
   return (
     <nav className="navbar">
-      <h2>HEMATOHUB</h2>
+        <img src="/icon.webp" alt="Logo" className="logo-img" />
+        <h2> HEMATOHUB
+      </h2>
       <ul>
         <li><Link to="/">Home</Link></li>
         <li><Link to="/register-donor">Donor</Link></li>

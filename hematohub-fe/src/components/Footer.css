@@ -8,6 +8,7 @@
     width: 100%;
     font-size: 14px;
     margin: 0; /* Ensures no margin at the bottom */
+    position: relative;
   }
   
   .footer-container {
