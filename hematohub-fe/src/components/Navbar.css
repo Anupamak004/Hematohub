@@ -1,0 +1,43 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #aa1515;
+    padding: 10px 30px;
+    color: white;
+  }
+  
+  .navbar h2 {
+    margin-right: auto;
+    color: rgb(255, 255, 255);
+  }
+  
+  .navbar ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .navbar li {
+    display: inline;
+  }
+  
+  .navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .navbar a:hover {
+    color: #ffccbc;
+  }
+  
+  .logo-img {
+    width: 60px;  /* Adjust the size of your logo */
+    height: auto;
+    margin-right: 5px;  /* Spacing between logo and text */
+  }
+  
+  

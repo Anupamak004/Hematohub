@@ -1,0 +1,68 @@
+.footer {
+    background-color: #333;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    font-size: 14px;
+    margin: 0; /* Ensures no margin at the bottom */
+    position: relative;
+  }
+  
+  .footer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .footer-top {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;  /* Ensures the links and copyright are on the same line and wrap if needed */
+  }
+  
+  .footer-links {
+    margin: 0 15px;
+  }
+  
+  .footer-links a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+  }
+  
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+  
+  .footer-copyright {
+    margin-left: 15px;
+  }
+  
+  .footer-bottom {
+    margin-top: 5px;
+  }
+  
+  .footer-contact {
+    margin-top: 5px;
+  }
+  
+  .footer-contact p {
+    font-size: 12px;
+    margin: 0;
+  }
+  
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  .main-content {
+    min-height: calc(100vh - 50px); /* Ensures main content takes up space leaving room for footer */
+    padding-bottom: 50px; /* Add padding at the bottom to prevent footer from overlapping content */
+  }
+  
