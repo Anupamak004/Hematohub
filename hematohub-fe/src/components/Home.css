@@ -14,7 +14,7 @@
 
 /* Content Box */
 .intro-content {
-  max-width: 500px;
+  max-width: 600px;
   padding: 30px;
   background: rgba(255, 255, 255, 0.3); /* Slight transparency */
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
@@ -28,6 +28,8 @@
 .intro-content h1 {
   color: #bd1913;
   margin-bottom: 20px;
+  font-family: system-ui;
+  font-weight: 900;
 }
 
 .intro-content p {
@@ -38,6 +40,8 @@
 
 /* Buttons */
 .intro-buttons {
+  display: flex;
+  flex-direction: column;
   margin-top: 30px;
 }
 

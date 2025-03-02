@@ -8,7 +8,6 @@
     width: 100%;
     font-size: 14px;
     margin: 0; /* Ensures no margin at the bottom */
-    position: relative;
   }
   
   .footer-container {
@@ -20,8 +19,8 @@
   
   .footer-top {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    flex-wrap: wrap;  /* Ensures the links and copyright are on the same line and wrap if needed */
   }
   
   .footer-links {
@@ -39,11 +38,12 @@
   }
   
   .footer-copyright {
+    display: flex;
     margin-left: 15px;
   }
   
   .footer-bottom {
-    margin-top: 5px;
+    display: flex;
   }
   
   .footer-contact {
