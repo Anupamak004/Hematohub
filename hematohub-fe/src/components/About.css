@@ -1,36 +1,40 @@
 .about-container {
   max-width: 800px;
-  margin: 50px auto;
+  margin: 0 auto;
   padding: 20px;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.about-container h1 {
-  color: #d32f2f; /* Red theme for blood donation */
-  margin-bottom: 20px;
-}
-
-.about-container p {
-  font-size: 18px;
-  color: #555;
-  line-height: 1.6;
-}
-
-.about-container h2 {
-  margin-top: 20px;
+  font-family: Arial, sans-serif;
   color: #333;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 94%);
+  margin: 20px auto;
 }
 
-.about-container ul {
-  list-style: none;
-  padding: 0;
+.about-title {
+  text-align: center;
+  font-size: 2em;
+  color: #d9534f;
+  margin-bottom: 10px;
 }
 
-.about-container ul li {
-  font-size: 16px;
-  padding: 5px 0;
-  color: #444;
+.about-description, .about-text {
+  font-size: 1.1em;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.about-heading {
+  font-size: 1.5em;
+  color: #5a5a5a;
+  margin-top: 20px;
+}
+
+.about-list {
+  list-style-type: disc;
+  margin-left: 20px;
+  font-size: 1.1em;
+}
+
+.about-list li {
+  margin-bottom: 8px;
 }

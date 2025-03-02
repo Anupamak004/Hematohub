@@ -1,50 +1,186 @@
-body{
-  background-image: url("../assets/two.jpg");
-  background-size: cover; /* Ensures the image covers the entire viewport */
-  background-position: center; /* Centers the image */
-  background-repeat: no-repeat; /* Prevents tiling (grid effect) */
-  background-attachment: scroll;
-  margin: 10px;
-}
+/* Register Page Styles */
+
 
 .register-container {
-    width: 350px;
-    margin: 80px auto;
-    padding: 70px;
-    border-radius: 10px;
+  width: 100%;
+    max-width: 516px;
+    margin: 50px auto;
+    padding: 40px;
     background: #ffffff;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.4);
+    margin-right: 80px;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+}
+
+/* Toggle Buttons */
+.switch-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.switch-container button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: #ae9494;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+}
+
+.switch-container .active {
+  background: #ff4d4d;
+  color: white;
+}
+
+.switch-container button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.switch-container button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+/* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.input-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.input-box label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 5px;
+}
+
+.checkbox-container label{
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 5px;
+}
+
+.input-box input,
+.input-box select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: 0.3s ease-in-out;
+}
+
+.input-box input:focus,
+.input-box select:focus {
+  border-color: #ff4d4d;
+  outline: none;
+}
+
+/* Checkbox */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-container label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Submit Button */
+.register-button {
+  background: #ff4d4d;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  width: 100%;
+}
+
+.register-button:hover {
+  background: #d62f2f;
+}
+
+.final-submit{
+  background-color: #ff4d4d;
+  width: 214px;
+  align-self: center;
+  height: 35px;
+  font-size: large;
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.final-submit:hover{
+  background-color: #d62f2f;
+}
+
+.register-image {
+  width: 100%;
+    max-width: 620px;
+    display: block;
+    margin: 0 auto 20px;
+    border-radius: 10px;
+    position: absolute;
+    left: 98px;
+    top: 899px;
+    z-index: 10;
+}
+
+
+.register2-image {
+  width: 100%;
+    max-width: 477px;
+    display: block;
+    margin: 0 auto 20px;
+    border-radius: 10px;
+    position: absolute;
+    left: 172px;
+    top: 306px;
+}
+
+.register3-image {
+  width: 100%;
+  left: 70px;
+  max-width: 400px;
+  display: block;
+  margin: 0 auto 20px;
+  border-radius: 10px;
+  position: absolute;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .register-container {
+    width: 90%;
+    padding: 20px;
   }
-  
-  h2 {
-    color: #d32f2f;
-    margin-bottom: 20px;
-  }
-  
-  input {
+
+  .input-box {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
   }
-  
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #d32f2f;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 10px;
-  }
-  
-  button:hover {
-    background: #b71c1c;
-  }
-  
+}

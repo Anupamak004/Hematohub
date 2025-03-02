@@ -1,33 +1,43 @@
+/* PrivacyPolicy.css */
+
 .privacy-container {
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    text-align: left;
-  }
-  
-  .privacy-container h1 {
-    color: #d32f2f; /* Red theme for blood donation */
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .privacy-container h2 {
-    margin-top: 20px;
-    color: #333;
-  }
-  
-  .privacy-container p, 
-  .privacy-container ul {
-    font-size: 18px;
-    color: #555;
-    line-height: 1.6;
-  }
-  
-  .privacy-container ul {
-    list-style-type: disc;
-    margin-left: 20px;
-  }
-  
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 94%);
+}
+
+.privacy-container h1 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #d32f2f;
+}
+
+.privacy-container h2 {
+  font-size: 1.5rem;
+  margin-top: 20px;
+  color: #333;
+}
+
+.privacy-container p,
+.privacy-container ul {
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.privacy-container ul {
+  padding-left: 20px;
+}
+
+.privacy-container li {
+  margin-bottom: 10px;
+}
+
+.privacy-container strong {
+  color: #000;
+}

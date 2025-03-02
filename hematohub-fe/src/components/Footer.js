@@ -7,13 +7,12 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
+          <div className="footer-copyright">
+            <p>&copy; 2025 HematoHub | All rights reserved.</p>
+          </div>
           <div className="footer-links">
-            <Link to="/about">About Us</Link>
             <Link to="/contact">Contact Us</Link>
             <Link to="/privacy">Privacy Policy</Link>
-          </div>
-          <div className="footer-copyright">
-            <p>&copy; 2025 HEMATOHUB</p>
           </div>
         </div>
 
