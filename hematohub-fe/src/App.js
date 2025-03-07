@@ -12,6 +12,8 @@ import About from "./components/About";
 import Contact from "./components/Contact";  
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import EditDonorProfile from "./components/EditDonorProfile";
+import TermsAndConditions from "./components/TermsAndConditions";
+
 
 import "./App.css";  
 
@@ -32,6 +34,7 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/donor/edit-profile" element={<EditDonorProfile />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

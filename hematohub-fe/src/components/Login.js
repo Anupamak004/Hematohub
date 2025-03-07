@@ -6,34 +6,58 @@ const Login = () => {
   const [userType, setUserType] = useState("donor"); // Default: Donor
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"; // Updated API URL
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    const userData = JSON.parse(localStorage.getItem(userType)); // Fetch user data based on type
-
-    if (userData && userData.email === email && userData.password === password) {
-      localStorage.setItem("userType", userType);
-      alert(`${userType.charAt(0).toUpperCase() + userType.slice(1)} Login Successful! Redirecting...`);
-
-      switch (userType) {
-        case "donor":
-          navigate("/donor-dashboard");
-          break;
-        case "hospital":
-          window.open("/hospital-dashboard", "_blank");
-          break;
-        case "admin":
-          navigate("/admin-dashboard");
-          break;
-        default:
-          console.error("Invalid user type.");
+    setLoading(true);
+  
+    try {
+      console.log("Logging in as:", userType);
+  
+      const response = await fetch(`${API_BASE_URL}/api/${userType}s/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      console.log("Raw response:", response);
+  
+      // Check if response has content before calling .json()
+      const text = await response.text(); // Read response as text
+      console.log("Raw response text:", text);
+  
+      let data;
+      try {
+        data = JSON.parse(text); // Try to parse JSON
+      } catch (error) {
+        throw new Error("Invalid JSON received from server");
       }
-    } else {
-      alert("Invalid Credentials! Please try again.");
+  
+      console.log("Parsed response data:", data);
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+  
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userType", userType);
+      localStorage.setItem("userId", data.userId || "");
+  
+      alert("Login successful!");
+      navigate(`/${userType}-dashboard`);
+    } catch (error) {
+      console.error("Login Error:", error.message);
+      alert(error.message || "Failed to login. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+  
+
 
   return (
     <div className="login-wrapper">
@@ -42,36 +66,18 @@ const Login = () => {
 
         {/* User Type Selection */}
         <div className="user-type-select">
-          <label className={userType === "donor" ? "selected" : ""}>
-            <input
-              type="radio"
-              name="userType"
-              value="donor"
-              checked={userType === "donor"}
-              onChange={() => setUserType("donor")}
-            />
-            Donor
-          </label>
-          <label className={userType === "hospital" ? "selected" : ""}>
-            <input
-              type="radio"
-              name="userType"
-              value="hospital"
-              checked={userType === "hospital"}
-              onChange={() => setUserType("hospital")}
-            />
-            Hospital
-          </label>
-          <label className={userType === "admin" ? "selected" : ""}>
-            <input
-              type="radio"
-              name="userType"
-              value="admin"
-              checked={userType === "admin"}
-              onChange={() => setUserType("admin")}
-            />
-            Admin
-          </label>
+          {["donor", "hospital", "admin"].map((type) => (
+            <label key={type} className={userType === type ? "selected" : ""}>
+              <input
+                type="radio"
+                name="userType"
+                value={type}
+                checked={userType === type}
+                onChange={() => setUserType(type)}
+              />
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </label>
+          ))}
         </div>
 
         {/* Login Form */}
@@ -90,7 +96,9 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit">Login</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
 
         {/* Register Links */}

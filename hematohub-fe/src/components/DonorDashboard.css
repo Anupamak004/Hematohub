@@ -1,7 +1,8 @@
 .dashboard-container {
   display: flex;
-  height: 100vh;
+  height: 100%;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .sidebar-toggle {
@@ -22,7 +23,6 @@
   position: relative;
   left: -250px;
   width: 250px;
-  height: 100%;
   background: #ff4d4d;
   color: white;
   display: flex;
@@ -152,6 +152,8 @@ button.sidebar-toggle{
     text-align: center;
     position: relative;
     right: 100px;
+    top: 35px;
+    margin-bottom: 80px;
 }
 
 .profile-header {
@@ -225,3 +227,5 @@ button.sidebar-toggle{
 .save-button:hover {
   background-color: #218838;
 }
+
+

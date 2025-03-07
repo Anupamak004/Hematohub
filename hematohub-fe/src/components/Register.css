@@ -61,8 +61,16 @@ form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
+  width: 95%;
 }
+
+
+.input-box1 {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+}
+
 
 .input-box label {
   font-size: 14px;
@@ -173,6 +181,25 @@ form {
   position: absolute;
 }
 
+.blood-stock-box{
+  width: 467px;
+  border-radius: 14px;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 26%);  
+  padding: 23px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+label.input-box-label{
+  align-self: baseline;
+    font-weight: bold;
+}
+
+.input-box1 input{
+  height: 30px;
+}
+
 /* Responsive Design */
 @media (max-width: 600px) {
   .register-container {
@@ -183,4 +210,11 @@ form {
   .input-box {
     width: 100%;
   }
+}
+
+.error{
+  font-size: x-small;
+    color: red;
+    margin: 0;
+    text-align: left;
 }
