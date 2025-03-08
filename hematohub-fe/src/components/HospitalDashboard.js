@@ -9,46 +9,121 @@ import { useNavigate } from "react-router-dom";
 const HospitalDashboard = () => {
   const [hospitalData, setHospitalData] = useState(null);
   const navigate = useNavigate();
-  const [bloodStock] = useState([
-    { type: "A+", units: 50 },
-    { type: "O+", units: 40 },
-    { type: "B+", units: 30 },
-    { type: "AB+", units: 20 },
-    { type: "A-", units: 10 },
-    { type: "O-", units: 25 },
-    { type: "B-", units: 15 },
-    { type: "AB-", units: 5 },
-  ]);
+  const [bloodStock, setBloodStock] = useState([]);
   const [currentTab, setCurrentTab] = useState("bloodStock");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bloodRequests, setBloodRequests] = useState([]);
   const [donationHistory, setDonationHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  
+useEffect(() => {
+  const fetchBloodStock = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/api/hospitals/blood-stock", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch blood stock data");
+      }
+
+      const data = await response.json();
+      setBloodStock(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchBloodStock();
+}, []);
+
+  
 
   useEffect(() => {
-    const storedHospital = localStorage.getItem("hospital");
-    if (storedHospital) {
-      setHospitalData(JSON.parse(storedHospital));
-    } else {
-      alert("No hospital data found! Redirecting to login.");
-      window.location.href = "/login";
-    }
-
-    setBloodRequests([
-      { id: 1, bloodType: "A+", quantity: 5, urgency: "urgent", status: "Pending" },
-      { id: 2, bloodType: "O+", quantity: 10, urgency: "normal", status: "Approved" },
-    ]);
-
-    setDonationHistory([
-      { id: 1, donorName: "John Doe", bloodType: "A+", date: "2023-10-01", units: 2 },
-      { id: 2, donorName: "Jane Smith", bloodType: "O+", date: "2023-10-05", units: 1 },
-    ]);
-
-    setNotifications([
-      { id: 1, message: "Low stock for A- blood type", date: "2023-10-10" },
-      { id: 2, message: "Blood request approved for O+", date: "2023-10-09" },
-    ]);
+    const fetchHospitalData = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Assuming you store a JWT token
+        const response = await fetch("http://localhost:5000/api/hospitals/dashboard", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Send token for authentication
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch hospital data");
+        }
+  
+        const data = await response.json();
+        setHospitalData(data); // Update state with fetched data
+      } catch (error) {
+        console.error(error);
+        alert("Error fetching hospital data, please log in again.");
+        window.location.href = "/login";
+      }
+    };
+  
+    fetchHospitalData();
   }, []);
+  
+  useEffect(() => {
+    const fetchBloodRequests = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:5000/api/hospitals/blood-requests", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch blood requests");
+        }
+  
+        const data = await response.json();
+        setBloodRequests(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchBloodRequests();
+  }, []);
+  
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:5000/api/hospitals/notifications", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+  
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchNotifications();
+  }, []);
+  
 
   const chartData = {
     labels: bloodStock.map((stock) => stock.type),
@@ -71,17 +146,62 @@ const HospitalDashboard = () => {
     window.location.href = "/login";
   };
 
-  const handleSubmitRequest = (event) => {
+  const handleSubmitRequest = async (event) => {
     event.preventDefault();
-    console.log("Submit request clicked");
-    // Add logic for submitting a request
-};
+  
+    const formData = new FormData(event.target);
+    const requestData = {
+      bloodType: formData.get("bloodType"),
+      quantity: formData.get("quantity"),
+      urgency: formData.get("urgency"),
+    };
+  
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/api/hospitals/blood-requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to submit request");
+      }
+  
+      alert("Blood request submitted successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Error submitting request.");
+    }
+  };
+  
 
-const handleCancelRequest = (id) => {
-    console.log(`Cancel request for ID: ${id}`);
-    // Add logic for canceling a request
-};
-
+  const handleCancelRequest = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/hospitals/blood-requests/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to cancel request");
+      }
+  
+      alert("Blood request cancelled successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Error cancelling request.");
+    }
+  };
+  
 const handleEmergencyMode = () => {
     console.log("Emergency mode activated");
     // Add logic for handling emergency mode

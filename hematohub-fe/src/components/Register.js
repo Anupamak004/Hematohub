@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams ,Link} from "react-router-dom";
 import "./Register.css";
 import registerImage from "../assets/blooddonation2.png";
 import registerImage1 from "../assets/blooddonation3.png";
@@ -10,20 +10,37 @@ const Register = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [userType, setUserType] = useState(searchParams.get("type") || "donor");  const [name, setName] = useState("");
+  const [userType, setUserType] = useState(searchParams.get("type") || "donor");
+  const [name, setName] = useState("");
   const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
   const [address, setAddress] = useState("");
   const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [bloodType, setBloodType] = useState("");
   const [hasDisease, setHasDisease] = useState(false);
   const [disease, setDisease] = useState("");
-  const [bloodType, setBloodType] = useState("");
   const [aadhar, setAadhar] = useState("");
   const [mobile, setMobile] = useState("");
   const [lastDonation, setLastDonation] = useState("");
   const [medications, setMedications] = useState("");
   const [emergency, setEmergency] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+
+
+  const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+
+  // Validation functions
+  const validateHeight = (value) => value >= 150; // Minimum height 150 cm
+
+  // Validation function for Aadhar (12-digit number)
+  const validateAadhar = (value) => /^\d{12}$/.test(value);
+
+  // Validation function for mobile number (10-digit)
+  const validateMobile = (value) => /^\d{10}$/.test(value);
+
+  // Validation function for weight (minimum 50 kg)
+  const validateWeight = (value) => value >= 50;
   const [consent, setConsent] = useState(false);
 
 
@@ -31,46 +48,93 @@ const Register = () => {
   const [hospitalName, setHospitalName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [hospitalType, setHospitalType] = useState("");
-  const [location, setLocation] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [emergencyContact, setEmergencyContact] = useState("");
-  const [bloodStock, setBloodStock] = useState("");
-  const [storageCapacity, setStorageCapacity] = useState("");
-  const [bloodComponents, setBloodComponents] = useState("");
-  const [authorizedPerson, setAuthorizedPerson] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [idProof, setIdProof] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [alternatePhone, setAlternatePhone] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
+  const [country, setCountry] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [bloodBankAvailable, setBloodBankAvailable] = useState(false);
   const [licenseNumber, setLicenseNumber] = useState("");
-  const [operatingHours, setOperatingHours] = useState("");
-  const [ambulanceAvailability, setAmbulanceAvailability] = useState(false);
+  const [bloodStock, setBloodStock] = useState({
+    "A+": "",
+    "A-": "",
+    "B+": "",
+    "B-": "",
+    "AB+": "",
+    "AB-": "",
+    "O+": "",
+    "O-": "",
+  });
   
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [threshold, setThreshold] = useState({ Aplus: "", Aminus: "", Bplus: "", Bminus: "", ABplus: "", ABminus: "", Oplus: "", Ominus: "" });
+  const [website, setWebsite] = useState("");
+  const [operatingHours, setOperatingHours] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (!consent) {
-      alert("You must agree to the terms and conditions to register.");
-      return;
-    }
+  const validatePhone = (num) => /^[0-9]{10,15}$/.test(num);
+    const validateZip = (zip) => /^[0-9]{4,10}$/.test(zip);
+    const validateEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+    const validatePassword = (password) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
 
-    if (userType === "donor") {
-      const donorData = {
-        name, dob, address, weight, hasDisease, disease, bloodType, aadhar, mobile,
-        lastDonation, medications, emergency, email, password
+    const handleRegister = async (e) => {
+      e.preventDefault();
+    
+      if (!consent) {
+        alert("You must agree to the terms and conditions to register.");
+        return;
+      }
+    
+      const userData = userType === "donor" ? {
+        name, dob, gender, address, weight, height, bloodType, hasDisease, disease, aadhar, mobile, lastDonation, medications, emergency, email, password
+      } : {
+        hospitalName, registrationNumber, hospitalType, email, phoneNumber, alternatePhone, address, city, state, zip, country, latitude, longitude, password, bloodBankAvailable, licenseNumber, bloodStock, threshold, website, operatingHours
       };
-      localStorage.setItem("donor", JSON.stringify(donorData));
-      localStorage.setItem("userType", "donor");
-      alert("Donor Registered Successfully! Redirecting to Donor Dashboard.");
-      navigate("/donor-dashboard");
-    } else {
-      const hospitalData = { hospitalName, location, email, password };
-      localStorage.setItem("hospital", JSON.stringify(hospitalData));
-      localStorage.setItem("userType", "hospital");
-      alert("Hospital Registered Successfully! Redirecting to Hospital Dashboard.");
-      navigate("/hospital-dashboard");
-    }
+    
+      try {
+        const response = await fetch(`http://localhost:5000/api/${userType}s/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
+        });
+    
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          navigate(`/${userType}-dashboard`);
+        } else {
+          alert(data.error || "Registration failed. Try again.");
+        }
+      } catch (error) {
+        console.error("Registration Error:", error);
+        alert("Failed to register. Try again.");
+      }
+    };
+    
+
+    const handleValidation = () => {
+      const newErrors = {};
+      
+      if (!validatePhone(mobile)) newErrors.mobile = "Invalid phone number";
+      if (!validateZip(zip)) newErrors.zip = "Invalid ZIP code";
+      if (!validateEmail(email)) newErrors.email = "Invalid email";
+      if (!validatePassword(password)) newErrors.password = "Weak password";
+      if (!validatePassword(aadhar)) newErrors.aadhar = "Weak password";
+
+
+
+      setErrors(newErrors);
+
+      if (Object.keys(newErrors).length === 0) {
+          console.log("Form is valid");
+      }
   };
+  
 
   return (
     <div className="register-container">
@@ -85,40 +149,239 @@ const Register = () => {
       <form onSubmit={handleRegister}>
         {userType === "donor" ? (
           <>
-            <div className="input-box"><label>Full Name</label><input type="text" placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
-            <div className="input-box"><label>Date of Birth</label><input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required /></div>
-            <div className="input-box"><label>Address</label><input type="text" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} required /></div>
-            <div className="input-box"><label>Weight (kg)</label><input type="number" placeholder="Enter your weight" value={weight} onChange={(e) => setWeight(e.target.value)} required /></div>
-            <div className="input-box"><label>Blood Type</label><select value={bloodType} onChange={(e) => setBloodType(e.target.value)} required><option value="">Select Blood Type</option>{bloodTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></div>
-            <div className="checkbox-container"><label>Do you have any disease?</label><input type="checkbox" checked={hasDisease} onChange={() => setHasDisease(!hasDisease)} /></div>
-            {hasDisease && <div className="input-box"><label>If yes, specify:</label><input type="text" placeholder="Enter disease name" value={disease} onChange={(e) => setDisease(e.target.value)} required /></div>}
-            <div className="input-box"><label>Aadhar Number</label><input type="text" placeholder="Enter your Aadhar number" value={aadhar} onChange={(e) => setAadhar(e.target.value)} required /></div>
-            <div className="input-box"><label>Mobile Number</label><input type="tel" placeholder="Enter your mobile number" value={mobile} onChange={(e) => setMobile(e.target.value)} required /></div>
-            <div className="input-box"><label>Last Donation Date</label><input type="date" value={lastDonation} onChange={(e) => setLastDonation(e.target.value)} /></div>
-            <div className="input-box"><label>Medications</label><input type="text" placeholder="Enter any medications you're taking" value={medications} onChange={(e) => setMedications(e.target.value)} /></div>
-            <div className="checkbox-container"><label>Available for Emergency Donation</label><input type="checkbox" checked={emergency} onChange={() => setEmergency(!emergency)} /></div>
+            <div className="input-box">
+        <label>Full Name *</label>
+        <input
+          type="text"
+          placeholder="Enter your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="input-box">
+        <label>Date of Birth *</label>
+        <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
+      </div>
+
+      <div className="input-box">
+        <label>Gender *</label>
+        <select value={gender} onChange={(e) => setGender(e.target.value)} required>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div className="input-box">
+        <label>Address *</label>
+        <input type="text" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} required />
+      </div>
+
+      <div className="input-box">
+        <label>Weight (kg) *</label>
+        <input type="number" placeholder="Enter your weight" value={weight} onChange={(e) => setWeight(e.target.value)} required />
+      </div>
+
+      <div className="input-box">
+        <label>Height (cm) *</label>
+        <input type="number" placeholder="Enter your height" value={height} onChange={(e) => setHeight(e.target.value)} required />
+      </div>
+
+      <div className="input-box">
+        <label>Blood Type *</label>
+        <select value={bloodType} onChange={(e) => setBloodType(e.target.value)} required>
+          <option value="">Select Blood Type</option>
+          {bloodTypes.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="checkbox-container">
+        <label>Do you have any disease?</label>
+        <input type="checkbox" checked={hasDisease} onChange={() => setHasDisease(!hasDisease)} />
+      </div>
+
+      {hasDisease && (
+        <div className="input-box">
+          <label>If yes, specify:</label>
+          <input type="text" placeholder="Enter disease name" value={disease} onChange={(e) => setDisease(e.target.value)} required />
+        </div>
+      )}
+
+      <div className="input-box">
+        <label>Aadhar Number *</label>
+        <input type="text" placeholder="Enter your Aadhar number" value={aadhar} onChange={(e) => setAadhar(e.target.value)} required />
+        {errors.aadhar && <p>{errors.aadhar}</p>}
+      </div>
+
+      <div className="input-box">
+        <label>Mobile Number *</label>
+        <input type="tel" placeholder="Enter your mobile number" value={mobile} onChange={(e) => setMobile(e.target.value)} required />
+        {errors.mobile&& <p>{errors.mobile}</p>}
+      </div>
+
+      <div className="input-box">
+        <label>Last Donation Date</label>
+        <input type="date" value={lastDonation} onChange={(e) => setLastDonation(e.target.value)} />
+      </div>
+
+      <div className="input-box">
+        <label>Medications</label>
+        <input type="text" placeholder="Enter any medications you're taking" value={medications} onChange={(e) => setMedications(e.target.value)} />
+      </div>
+
+      <div className="checkbox-container">
+        <label>Available for Emergency Donation</label>
+        <input type="checkbox" checked={emergency} onChange={() => setEmergency(!emergency)} />
+      </div>
+
           </>
         ) : (
           <>
-            <div className="input-box">
-  <label>Hospital Name</label><input type="text" placeholder="Enter hospital name" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} required /></div>
-<div className="input-box"><label>Registration Number</label><input type="text" placeholder="Enter registration number" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} required /></div>
-<div className="input-box"><label>Hospital Type</label><input type="text" placeholder="Enter hospital type" value={hospitalType} onChange={(e) => setHospitalType(e.target.value)} required /></div>
-<div className="input-box"><label>Location</label><input type="text" placeholder="Enter location" value={location} onChange={(e) => setLocation(e.target.value)} required /></div>
-<div className="input-box"><label>Contact Number</label><input type="tel" placeholder="Enter contact number" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} required /></div>
-<div className="input-box"><label>Emergency Contact</label><input type="tel" placeholder="Enter emergency contact" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} required /></div>
-<div className="input-box"><label>Blood Stock Available</label><input type="text" placeholder="Enter available blood stock" value={bloodStock} onChange={(e) => setBloodStock(e.target.value)} required /></div>
-<div className="input-box"><label>Blood Storage Capacity</label><input type="text" placeholder="Enter storage capacity" value={storageCapacity} onChange={(e) => setStorageCapacity(e.target.value)} required /></div>
-<div className="input-box"><label>Blood Components Available</label><input type="text" placeholder="Enter available blood components" value={bloodComponents} onChange={(e) => setBloodComponents(e.target.value)} required /></div>
-<div className="input-box"><label>Authorized Person Name</label><input type="text" placeholder="Enter authorized person name" value={authorizedPerson} onChange={(e) => setAuthorizedPerson(e.target.value)} required /></div>
-<div className="input-box"><label>Designation</label><input type="text" placeholder="Enter designation" value={designation} onChange={(e) => setDesignation(e.target.value)} required /></div>
+        <div className="input-box">
+        <label>Hospital Name *</label>
+        <input type="text" placeholder="Hospital Name" value={hospitalName} 
+          onChange={(e) => setHospitalName(e.target.value)}
+          required minLength={3} maxLength={100}
+        />
+      </div>
 
+      <div className="input-box">
+        <label>Registration Number *</label>
+        <input type="text" placeholder="Registration Number" value={registrationNumber}
+          onChange={(e) => setRegistrationNumber(e.target.value)}
+          required pattern="^[a-zA-Z0-9-/]+$"
+        />
+      </div>
+
+      <div className="input-box">
+        <label>Hospital Type *</label>
+        <select value={hospitalType} onChange={(e) => setHospitalType(e.target.value)} required>
+          <option value="">Select Type</option>
+          <option value="Government">Government</option>
+          <option value="Private">Private</option>
+          <option value="Charitable">Charitable</option>
+        </select>
+      </div>
+
+      <div className="input-box">
+        <label>Phone Number *</label>
+        <input type="tel" placeholder="Phone Number" value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          required pattern="[0-9]{10,15}"
+        />
+        {!validatePhone(phoneNumber) && phoneNumber && <p className="error">Invalid phone number</p>}
+      </div>
+
+      <div className="input-box">
+        <label>Alternate Phone Number</label>
+        <input type="tel" placeholder="Alternate Phone" value={alternatePhone}
+          onChange={(e) => setAlternatePhone(e.target.value)}
+          pattern="[0-9]{10,15}"
+        />
+      </div>
+
+      <div className="input-box">
+        <label>Address *</label>
+        <input type="text" placeholder="Address" value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required minLength={10} maxLength={255}
+        />
+      </div>
+
+      <div className="input-box">
+        <label>City *</label>
+        <input type="text" placeholder="City" value={city}
+          onChange={(e) => setCity(e.target.value)}
+          required pattern="^[A-Za-z\s]{2,50}$"
+        />
+      </div>
+
+      <div className="input-box">
+        <label>State *</label>
+        <input type="text" placeholder="State" value={state}
+          onChange={(e) => setState(e.target.value)}
+          required pattern="^[A-Za-z\s]{2,50}$"
+        />
+      </div>
+
+      <div className="input-box">
+        <label>ZIP Code *</label>
+        <input type="text" placeholder="ZIP Code" value={zip}
+          onChange={(e) => setZip(e.target.value)}
+          required pattern="[0-9]{4,10}"
+        />
+        {!validateZip(zip) && zip && <p className="error">Invalid ZIP code</p>}
+      </div>
+
+      <div className="input-box">
+        <label>Country *</label>
+        <input type="text" placeholder="Country" value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          required pattern="^[A-Za-z\s]+$"
+        />
+      </div>
+
+      <label className="input-box-label">Blood Bank Details *</label>
+      <div className="blood-stock-box">
+        <div className="input-box">
+          <label>Blood Bank License Number *</label>
+          <input type="text" placeholder="Blood Bank License Number" value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value)}
+            required pattern="^[a-zA-Z0-9-]+$"
+          />
+        </div>
+
+        <label className="input-box-label">Current Blood Stock Levels</label>
+        {Object.keys(bloodStock).map((type) => (
+          <div className="input-box1" key={type}>
+            <input type="number" placeholder={`Initial Stock for ${type}`} value={bloodStock[type]}
+              onChange={(e) => {
+                const value = e.target.value;
+                setBloodStock({ ...bloodStock, [type]: value === "" ? "" : Math.max(0, Number(value)) });
+              }}
+              min="0"
+            />
+          </div>
+        ))}
+      </div>
           </>
         )}
-        <div className="input-box"><label>Email</label><input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-        <div className="input-box"><label>Password</label><input type="password" placeholder="Enter a strong password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-        <div className="checkbox-container"><input type="checkbox" checked={consent} onChange={() => setConsent(!consent)} required /><label>I agree to the terms and conditions</label></div>
-        <button type="submit" className="final-submit">Register</button>
+        <div className="input-box">
+        <label>Email *</label>
+        <input type="email" placeholder="Email" value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        {!validateEmail(email) && email && <p className="error">Invalid email</p>}
+      </div>
+
+      <div className="input-box">
+        <label>Password *</label>
+        <input type="password" placeholder="Password" value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {!validatePassword(password) && password && <p className="error">Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.</p>}
+      </div>
+        <div className="checkbox-container">
+  <input 
+    type="checkbox" 
+    checked={consent} 
+    onChange={() => setConsent(!consent)} 
+    required 
+  />
+  <label>
+    I agree to the{" "}
+    <Link to="/terms-and-conditions" className="terms-link">Terms and Conditions</Link>
+  </label>
+</div>        <button type="submit" className="final-submit">Register</button>
       </form>
     </div>
   );
