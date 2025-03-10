@@ -5,7 +5,6 @@ import {authenticateHospital} from "../middleware/auth.js";
 import { getHospitalDashboard } from "../controllers/hospitalController.js";
 
 
-
 const router = express.Router();
 
 router.post("/register", registerHospital);

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./Login.css";
 
 const Login = () => {
@@ -7,62 +8,49 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"; // Updated API URL
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"; // API URL
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+    setError("");
+
     try {
       console.log("Logging in as:", userType);
-  
-      const response = await fetch(`${API_BASE_URL}/api/${userType}s/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-  
-      console.log("Raw response:", response);
-  
-      // Check if response has content before calling .json()
-      const text = await response.text(); // Read response as text
-      console.log("Raw response text:", text);
-  
-      let data;
-      try {
-        data = JSON.parse(text); // Try to parse JSON
-      } catch (error) {
-        throw new Error("Invalid JSON received from server");
-      }
-  
-      console.log("Parsed response data:", data);
-  
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-  
-      localStorage.setItem("token", data.token);
+
+      // API endpoint (Admin has a different endpoint)
+      const endpoint =
+        userType === "admin"
+          ? `${API_BASE_URL}/api/admin/login`
+          : `${API_BASE_URL}/api/${userType}s/login`;
+
+      const res = await axios.post(endpoint, { email, password });
+
+      // Store token & user details
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("userType", userType);
-      localStorage.setItem("userId", data.userId || "");
-  
+      localStorage.setItem("userId", res.data.userId || "");
+
       alert("Login successful!");
-      navigate(`/${userType}-dashboard`);
-    } catch (error) {
-      console.error("Login Error:", error.message);
-      alert(error.message || "Failed to login. Please try again.");
+
+      // Redirect based on user type
+      navigate(userType === "admin" ? "/admin-dashboard" : `/${userType}-dashboard`);
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
-  
-
 
   return (
     <div className="login-wrapper">
       <div className="login-container">
         <h2>Login</h2>
+
+        {error && <p className="error">{error}</p>}
 
         {/* User Type Selection */}
         <div className="user-type-select">

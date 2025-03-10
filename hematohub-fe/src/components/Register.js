@@ -106,7 +106,8 @@ const Register = () => {
         const data = await response.json();
         if (response.ok) {
           alert(data.message);
-          navigate(`/${userType}-dashboard`);
+          alert("Please login");
+          navigate(`/login`);
         } else {
           alert(data.error || "Registration failed. Try again.");
         }
