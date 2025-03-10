@@ -1,0 +1,107 @@
+/* Admin Dashboard Styles */
+.admin-dashboard-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.dashboard-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #d32f2f;
+}
+
+.logout-button {
+    padding: 8px 15px;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #b71c1c;
+}
+
+.dashboard-section {
+    margin-top: 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #d32f2f;
+    padding-bottom: 5px;
+}
+
+.hospital-list, .donor-list {
+    list-style: none;
+    padding: 0;
+}
+
+.hospital-item, .donor-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    transition: 0.3s ease;
+}
+
+.hospital-item:hover, .donor-item:hover {
+    background: #f1f1f1;
+}
+
+.hospital-name, .donor-name {
+    font-weight: bold;
+}
+
+.hospital-status {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.hospital-status.approved {
+    background: #4caf50;
+    color: white;
+}
+
+.hospital-status.pending {
+    background: #ff9800;
+    color: white;
+}
+
+.hospital-status.rejected {
+    background: #d32f2f;
+    color: white;
+}
+
+.donor-blood {
+    font-size: 14px;
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.hospital-status.unknown {
+    background: #757575;
+    color: white;
+}

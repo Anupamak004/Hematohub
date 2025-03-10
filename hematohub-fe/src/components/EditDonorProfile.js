@@ -1,100 +1,152 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./EditDonorProfile.css";
-import { FaSave, FaArrowLeft, FaExclamationCircle } from "react-icons/fa";
 
-const EditDonorProfile = () => {
+const EditDonorProfile = ({ onSave }) => {
+  const storedDonorId = localStorage.getItem("donorId"); 
+  const { donorId: urlDonorId } = useParams();
+  const donorId = urlDonorId || storedDonorId; 
   const navigate = useNavigate();
-  const donorData = JSON.parse(localStorage.getItem("donor")) || {};
-
+  
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    name: donorData.name || "",
-    email: donorData.email || "",
-    phone: donorData.phone || "",
-    bloodType: donorData.bloodType || "",
-    height: donorData.height || "",
-    weight: donorData.weight || "",
-    disease: donorData.disease || "No",
-    medications: donorData.medications || "No",
+    name: "",
+    phone: "",
+    alternatePhone: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+    email: "",
+    password: "",
   });
 
-  const [errors, setErrors] = useState({});
-
   useEffect(() => {
-    document.title = "Edit Profile | HematoHub";
-  }, []);
+    const fetchDonorDetails = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        
+        console.log("Donor ID:", donorId);
+        console.log("Token:", token);
+        
+        if (!donorId || !token) {
+          alert("Authentication error. Please log in.");
+          return;
+        }
 
-  const validateForm = () => {
-    let newErrors = {};
+        const response = await fetch(`http://localhost:5000/api/donors/${donorId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    if (!formData.name.trim()) newErrors.name = "Name is required.";
-    if (!formData.email.match(/^\S+@\S+\.\S+$/)) newErrors.email = "Enter a valid email.";
-    if (!formData.phone.match(/^\d{10}$/)) newErrors.phone = "Phone number must be 10 digits.";
-    if (!formData.bloodType.trim()) newErrors.bloodType = "Blood type is required.";
-    if (formData.height < 100 || formData.height > 250) newErrors.height = "Enter a valid height (100-250 cm).";
-    if (formData.weight < 30 || formData.weight > 200) newErrors.weight = "Enter a valid weight (30-200 kg).";
+        console.log("Response Status:", response.status);
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error fetching data:", errorData);
+          throw new Error(`Error fetching donor details: ${errorData.message}`);
+        }
+
+        const donor = await response.json();
+        console.log("Fetched Donor Data:", donor);
+
+        setFormData({
+          name: donor.name || "",
+          phone: donor.phone || "",
+          alternatePhone: donor.alternatePhone || "",
+          address: donor.address || "",
+          city: donor.city || "",
+          state: donor.state || "",
+          zipCode: donor.zipCode || "",
+          country: donor.country || "",
+          email: donor.email || "",
+          password: "", 
+        });
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Failed to load donor details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (donorId) fetchDonorDetails();
+  }, [donorId]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
 
-  const handleSave = () => {
-    if (!validateForm()) return;
+      const updatedData = { ...formData };
+      if (!updatedData.password) delete updatedData.password; 
 
-    localStorage.setItem("donor", JSON.stringify(formData));
-    alert("Profile updated successfully!");
-    navigate("/donor-dashboard");
+      const response = await fetch(`http://localhost:5000/api/donors/${donorId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) throw new Error("Failed to update donor profile");
+
+      onSave();
+      alert("Profile updated successfully!");
+      navigate("/donor-dashboard");
+    } catch (error) {
+      console.error("Update error:", error);
+      alert("Error updating profile.");
+    }
   };
 
   return (
     <div className="edit-profile-container">
-      <button className="back-button" onClick={() => navigate("/donor-dashboard")}>
-        <FaArrowLeft /> Back to Dashboard
-      </button>
-
       <h2>Edit Profile</h2>
-
-      <div className="edit-form">
+      <form onSubmit={handleSubmit}>
         {[
-          { label: "Full Name", name: "name", type: "text" },
-          { label: "Email", name: "email", type: "email" },
+          { label: "Name", name: "name", type: "text" },
           { label: "Phone", name: "phone", type: "text" },
-          { label: "Blood Type", name: "bloodType", type: "text" },
-          { label: "Height (cm)", name: "height", type: "number" },
-          { label: "Weight (kg)", name: "weight", type: "number" },
+          { label: "Alternate Phone", name: "alternatePhone", type: "text" },
+          { label: "Address", name: "address", type: "text" },
+          { label: "City", name: "city", type: "text" },
+          { label: "State", name: "state", type: "text" },
+          { label: "ZIP Code", name: "zipCode", type: "text" },
+          { label: "Country", name: "country", type: "text" },
+          { label: "Email", name: "email", type: "email" },
+          { label: "New Password (optional)", name: "password", type: "password" },
         ].map(({ label, name, type }) => (
-          <div key={name} className="input-group">
+          <div className="input-group" key={name}>
             <label>{label}:</label>
-            <input type={type} name={name} value={formData[name]} onChange={handleInputChange} />
-            {errors[name] && <span className="error-msg"><FaExclamationCircle /> {errors[name]}</span>}
+            <input
+              type={type}
+              name={name}
+              value={formData[name] || ""}
+              onChange={handleChange}
+              required={name !== "password"}
+            />
           </div>
         ))}
 
-        <div className="input-group">
-          <label>Any Disease:</label>
-          <select name="disease" value={formData.disease} onChange={handleInputChange}>
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
+        <div className="button-group">
+          <button type="button" className="back-button" onClick={() => navigate("/donor-dashboard")}>
+            Back
+          </button>
+          <button type="submit" className="save-button" disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
         </div>
-
-        <div className="input-group">
-          <label>Taking Medications:</label>
-          <select name="medications" value={formData.medications} onChange={handleInputChange}>
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
-
-        <button className="save-button" onClick={handleSave}>
-          <FaSave /> Save Changes
-        </button>
-      </div>
+      </form>
     </div>
   );
 };

@@ -36,7 +36,7 @@ const DonorDashboard = () => {
   
 
   const calculateNextDonationDate = (lastDonationDate) => {
-    if (lastDonationDate) {
+    if (lastDonationDate ) {
       // If last donation is available, add 90 days
       const nextEligibleDate = new Date(lastDonationDate);
       nextEligibleDate.setDate(nextEligibleDate.getDate() + 90);

@@ -13,8 +13,8 @@ import Contact from "./components/Contact";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import EditDonorProfile from "./components/EditDonorProfile";
 import TermsAndConditions from "./components/TermsAndConditions";
-
-
+import DonorHistory from "./components/DonorHistory";
+import AdminDashboard from "./components/AdminDashboard";
 import "./App.css";  
 
 const App = () => {
@@ -35,6 +35,8 @@ const App = () => {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/donor/edit-profile" element={<EditDonorProfile />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/donor/donation-history" element={<DonorHistory />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
