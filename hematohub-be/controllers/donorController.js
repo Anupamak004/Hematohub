@@ -1,5 +1,6 @@
 import Donor from "../models/donor.js";
 import jwt from "jsonwebtoken";
+import asyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs"; // Added this import
 
 export const registerDonor = async (req, res) => {
@@ -52,3 +53,43 @@ export const loginDonor = async (req, res) => {
     }
   };
   
+
+
+
+const getDonorDetails = asyncHandler(async (req, res) => {
+  const donor = await Donor.findById(req.params.id).select("-password");
+
+  if (!donor) {
+    res.status(404);
+    throw new Error("Donor not found");
+  }
+
+  res.json(donor);
+});
+
+// @desc    Update donor details
+// @route   PUT /api/donors/:id
+// @access  Private
+const updateDonorDetails = asyncHandler(async (req, res) => {
+  const donor = await Donor.findById(req.params.id);
+
+  if (!donor) {
+    res.status(404);
+    throw new Error("Donor not found");
+  }
+
+  donor.name = req.body.name || donor.name;
+  donor.mobile = req.body.mobile || donor.mobile;  // Match frontend field
+  donor.address = req.body.address || donor.address;
+  donor.weight = req.body.weight || donor.weight;  // Match frontend field
+  donor.height = req.body.height || donor.height;  // Match frontend field
+  donor.lastDonation = req.body.lastDonation || donor.lastDonation;  // Match frontend field
+  donor.email = req.body.email || donor.email;
+
+  await donor.save();
+  res.json({ message: "Donor details updated successfully", donor });
+});
+
+export { getDonorDetails, updateDonorDetails };
+
+

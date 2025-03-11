@@ -28,11 +28,15 @@ const Login = () => {
           : `${API_BASE_URL}/api/${userType}s/login`;
 
       const res = await axios.post(endpoint, { email, password });
+      const { token } = res.data;
 
+      localStorage.setItem("adminToken", token);
+      console.log("Token stored:", token);
       // Store token & user details
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userType", userType);
-      localStorage.setItem("userId", res.data.userId || "");
+      localStorage.setItem("donorId", res.data.userId || "");
+      console.log(res.data.userId);
 
       alert("Login successful!");
 

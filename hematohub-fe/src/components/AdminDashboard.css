@@ -1,107 +1,153 @@
-/* Admin Dashboard Styles */
-.admin-dashboard-container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    font-family: 'Arial', sans-serif;
-}
-
-.dashboard-header {
+/* Admin Dashboard Styling */
+.admin-current {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #ddd;
+    height: 100vh;
+    background: #f4f6f9;
+    font-family: Arial, sans-serif;
 }
 
-.dashboard-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #d32f2f;
-}
-
-.logout-button {
-    padding: 8px 15px;
-    background-color: #d32f2f;
+/* Sidebar Styling */
+.admin-current-sidebar {
+    width: 250px;
+    background: #2c3e50;
     color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+}
+
+.admin-current-sidebar button {
+    background: none;
     border: none;
-    border-radius: 5px;
+    color: white;
+    padding: 15px;
+    width: 100%;
     cursor: pointer;
-    transition: 0.3s ease;
+    font-size: 18px;
+    text-align: center;
+    transition: background 0.3s, transform 0.2s;
 }
 
-.logout-button:hover {
-    background-color: #b71c1c;
+.admin-current-sidebar button:hover, .admin-current-sidebar .admin-current-active {
+    background: #34495e;
+    transform: scale(1.05);
 }
 
-.dashboard-section {
-    margin-top: 20px;
+button.admin-current-active{
+    width: 237px;
+    margin: 0;
 }
 
-.section-title {
-    font-size: 20px;
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #d32f2f;
+/* Main Content */
+.admin-current-content {
+    flex: 1;
+    padding: 20px;
+    background: #ecf0f1;
+    overflow-y: auto;
+}
+
+.admin-current h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 22px;
+    border-bottom: 2px solid #2c3e50;
     padding-bottom: 5px;
 }
 
-.hospital-list, .donor-list {
+.admin-current ul {
     list-style: none;
     padding: 0;
 }
 
-.hospital-item, .donor-item {
+/* List Items */
+.admin-current-item {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.admin-current-item:hover {
+    transform: scale(1.02);
+}
+
+.admin-current-info {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+}
+
+/* Buttons */
+.admin-current button {
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-left: 5px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.admin-current button:hover {
+    transform: scale(1.05);
+}
+
+.admin-current-delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.admin-current-delete:hover {
+    background: #c0392b;
+}
+
+.admin-current-view {
+    background: #3498db;
+    color: white;
+}
+
+.admin-current-view:hover {
+    background: #2980b9;
+}
+
+/* Details Section */
+.admin-current-details {
+    background: #ecf0f1;
+    margin-top: 10px;
     padding: 10px;
-    background: #f9f9f9;
-    border-radius: 5px;
-    margin-bottom: 8px;
-    transition: 0.3s ease;
-}
-
-.hospital-item:hover, .donor-item:hover {
-    background: #f1f1f1;
-}
-
-.hospital-name, .donor-name {
-    font-weight: bold;
-}
-
-.hospital-status {
-    padding: 5px 10px;
     border-radius: 5px;
     font-size: 14px;
-    font-weight: bold;
-    text-transform: capitalize;
+    color: #2c3e50;
+    display: none;
 }
 
-.hospital-status.approved {
-    background: #4caf50;
-    color: white;
+.admin-current-item.expanded .admin-current-details {
+    display: block;
 }
 
-.hospital-status.pending {
-    background: #ff9800;
-    color: white;
-}
-
-.hospital-status.rejected {
-    background: #d32f2f;
-    color: white;
-}
-
-.donor-blood {
-    font-size: 14px;
-    color: #d32f2f;
-    font-weight: bold;
-}
-
-.hospital-status.unknown {
-    background: #757575;
-    color: white;
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-current {
+        flex-direction: column;
+    }
+    
+    .admin-current-sidebar {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+    }
+    
+    .admin-current-sidebar button {
+        font-size: 16px;
+        padding: 10px;
+    }
 }

@@ -1,22 +1,20 @@
-.hospital_classname-container {
+/* Soft Gradient Background */
+.dashboard-container {
   display: flex;
   height: 100vh;
   background: linear-gradient(to right, #e8e8e8, #f0f0f0);
   font-family: "Poppins", sans-serif;
   overflow: hidden;
-  transition: all 0.3s ease;
 }
 
-.hospital_classname-sidebar{
-  position: absolute;
-  top: 87px;
-}
 
-button.hospital_classname-sidebar-toggle{
-  position: absolute;
-  top: 100px;
+
+/* Sidebar with Glass Effect */
+.sidebar-toggle {
+  position: fixed;
+  top: 15px;
   left: 15px;
-  background: #d32f2f;
+  background: #ff4d4d;
   color: white;
   border: none;
   padding: 10px;
@@ -26,11 +24,10 @@ button.hospital_classname-sidebar-toggle{
   z-index: 1001;
 }
 
-/* Sidebar with Glass Effect */
-.hospital_classname-sidebar {
-  left: -250px;
-  width: 250px;
-  height: 100%;
+.sidebar {
+  position: relative;
+  left: -283px;
+  width: 345px;
   background: #ff4d4d;
   color: white;
   display: flex;
@@ -40,22 +37,20 @@ button.hospital_classname-sidebar-toggle{
   transition: left 0.3s ease;
 }
 
-.hospital_classname-sidebar.open {
-  left: 0;
-  
-}
-
-/* Sidebar Toggle */
-.hospital_classname-sidebar-toggle {
+button.sidebar-toggle{
   width: 60px;
   position: absolute;
-  background-color: #af2121;
-  top: 94px;
+  background-color: #d32f2f;
+  top: 100px;
   left: 15px;
 }
 
-/* Sidebar Buttons */
-.hospital_classname-sidebar-btn {
+.sidebar.open {
+  left: 0;
+  align-items: baseline;
+}
+
+.sidebar button {
   background: transparent;
   border: none;
   color: white;
@@ -70,71 +65,57 @@ button.hospital_classname-sidebar-toggle{
   transition: background 0.2s;
 }
 
-.hospital_classname-sidebar-content{
-  align-self: flex-start;
-    position: relative;
-    top: 3px;
-    width: 100%;
+.sidebar button:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
-
-.hospital_classname-sidebar-toggle{
-  left: 250px;
-  width: 60px;
-}
-
-.hospital_classname-sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
-}
-
 /* Icons */
-.hospital_classname-icon-red {
+.icon-red {
   color: #e63946;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-icon-blue {
+.icon-blue {
   color: #457b9d;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-icon-yellow {
+.icon-yellow {
   color: #f4a261;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-icon-orange {
+.icon-orange {
   color: #ff6347;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-icon-purple {
+.icon-purple {
   color: #6a5acd;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-icon-green {
+.icon-green {
   color: #2e8b57;
   font-size: 1.5rem;
   transition: transform 0.3s ease;
 }
 
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-red,
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-blue,
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-yellow,
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-orange,
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-purple,
-.hospital_classname-sidebar-btn:hover .hospital_classname-icon-green {
+.sidebar-btn:hover .icon-red,
+.sidebar-btn:hover .icon-blue,
+.sidebar-btn:hover .icon-yellow,
+.sidebar-btn:hover .icon-orange,
+.sidebar-btn:hover .icon-purple,
+.sidebar-btn:hover .icon-green {
   transform: scale(1.2);
 }
 
 /* Glass Card */
-.hospital_classname-glass-card {
+.glass-card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px);
   border-radius: 15px;
@@ -143,20 +124,26 @@ button.hospital_classname-sidebar-toggle{
 }
 
 /* Chart Container */
-.hospital_classname-chart-container {
+.chart-container {
   width: 60%;
   height: 400px;
   margin: 0 auto;
 }
 
 /* Main Content */
-.hospital_classname-content {
-  margin-left: 250px;
-  padding: 20px;
+.content {
   width: 100%;
+  padding: 20px;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
 }
 
-.hospital_classname-header {
+.content.sidebar-open {
+  margin-left: 250px;
+}
+
+
+header {
   padding: 20px;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.2);
@@ -164,71 +151,71 @@ button.hospital_classname-sidebar-toggle{
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.hospital_classname-h1 {
+h1 {
   font-size: 2rem;
   color: #2a9d8f;
 }
 
-.hospital_classname-h2 {
+h2 {
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 20px;
 }
 
 /* Table Container for Scrollable Table */
-.hospital_classname-table-container {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-top: 10px;
+.table-container {
+  max-height: 200px; /* Reduced height for compact size */
+  overflow-y: auto; /* Enable vertical scrolling */
+  border: 1px solid #ddd; /* Optional: Add border for better visibility */
+  border-radius: 8px; /* Rounded corners */
+  margin-top: 10px; /* Spacing from the heading */
 }
 
 /* Table Styling */
-.hospital_classname-table {
+table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.hospital_classname-th,
-.hospital_classname-td {
+th,
+td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
-.hospital_classname-th {
+th {
   background-color: rgba(255, 255, 255, 0.2);
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  position: sticky; /* Make table headers sticky */
+  top: 0; /* Stick to the top of the container */
+  z-index: 1; /* Ensure headers are above the table body */
 }
 
 /* Responsive Table for Smaller Screens */
 @media (max-width: 768px) {
-  .hospital_classname-table-container {
-    max-height: 150px;
+  .table-container {
+    max-height: 150px; /* Smaller height for mobile */
   }
 
-  .hospital_classname-th,
-  .hospital_classname-td {
-    padding: 8px;
-    font-size: 14px;
+  th,
+  td {
+    padding: 8px; /* Smaller padding for mobile */
+    font-size: 14px; /* Smaller font size for mobile */
   }
 
-  .hospital_classname-table {
+  table {
     display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+    overflow-x: auto; /* Enable horizontal scrolling for small screens */
+    white-space: nowrap; /* Prevent text wrapping */
   }
 }
 
 /* Emergency Mode Section */
-.hospital_classname-emergency-mode {
+.emergency-mode {
   text-align: center;
 }
 
-.hospital_classname-emergency-mode button {
+.emergency-mode button {
   background-color: #e63946;
   color: white;
   border: none;
@@ -239,24 +226,8 @@ button.hospital_classname-sidebar-toggle{
   transition: background-color 0.3s ease;
 }
 
-.hospital_classname-emergency-mode button:hover {
+.emergency-mode button:hover {
   background-color: #d62828;
 }
 
 
-
-.hospital_classname-blood-stock-section{
-    width: 100%;
-    left: 65px;
-    max-width: 800px;
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    padding-left: 0px;
-    padding-right: 0px;
-    padding-bottom: 38px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
-    right: 100px;
-}
