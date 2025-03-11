@@ -21,6 +21,11 @@ app.use("/api/blood-requests", bloodRequestRoutes);
 app.use('/api/admin', adminRoutes);
 
 
+app.use((err, req, res, next) => {
+    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    res.status(statusCode).json({ message: err.message });
+  });
+
 // Protected Admin Route (Example)
 
 

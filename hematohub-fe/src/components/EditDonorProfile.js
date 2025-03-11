@@ -1,82 +1,69 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./EditDonorProfile.css";
 
-const EditDonorProfile = ({ onSave }) => {
-  const storedDonorId = localStorage.getItem("donorId"); 
-  const { donorId: urlDonorId } = useParams();
-  const donorId = urlDonorId || storedDonorId; 
+const EditDonorDashboard = () => {
+  const storedDonorId = localStorage.getItem("donorId");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  
+  console.log(storedDonorId);
+  console.log(token);
+  console.log(localStorage.getItem("donorId"));
+
+
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
-    alternatePhone: "",
+    mobile: "",
     address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
+    weight: "",
+    height: "",
+    lastDonation: "",
     email: "",
-    password: "",
   });
 
   useEffect(() => {
     const fetchDonorDetails = async () => {
       try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        
-        console.log("Donor ID:", donorId);
-        console.log("Token:", token);
-        
-        if (!donorId || !token) {
+        if (!storedDonorId || !token) {
           alert("Authentication error. Please log in.");
+          navigate("/login");
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/donors/${donorId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:5000/api/donors/${storedDonorId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        console.log("Response Status:", response.status);
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Error fetching data:", errorData);
-          throw new Error(`Error fetching donor details: ${errorData.message}`);
-        }
+        if (!response.ok) throw new Error("Failed to fetch donor details");
 
         const donor = await response.json();
-        console.log("Fetched Donor Data:", donor);
-
         setFormData({
           name: donor.name || "",
-          phone: donor.phone || "",
-          alternatePhone: donor.alternatePhone || "",
+          mobile: donor.mobile || "",
           address: donor.address || "",
-          city: donor.city || "",
-          state: donor.state || "",
-          zipCode: donor.zipCode || "",
-          country: donor.country || "",
+          weight: donor.weight || "",
+          height: donor.height || "",
+          lastDonation: donor.lastDonation || "",
           email: donor.email || "",
-          password: "", 
         });
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error("Error fetching donor data:", error);
         alert("Failed to load donor details.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (donorId) fetchDonorDetails();
-  }, [donorId]);
+    fetchDonorDetails();
+  }, [storedDonorId, token, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,46 +72,40 @@ const EditDonorProfile = ({ onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/donors/${storedDonorId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
-      const updatedData = { ...formData };
-      if (!updatedData.password) delete updatedData.password; 
+      if (!response.ok) throw new Error("Failed to update donor details");
 
-      const response = await fetch(`http://localhost:5000/api/donors/${donorId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (!response.ok) throw new Error("Failed to update donor profile");
-
-      onSave();
       alert("Profile updated successfully!");
       navigate("/donor-dashboard");
     } catch (error) {
-      console.error("Update error:", error);
+      console.error("Error updating profile:", error);
       alert("Error updating profile.");
     }
   };
 
   return (
-    <div className="edit-profile-container">
-      <h2>Edit Profile</h2>
+    <div className="edit-donor-dashboard">
+      <h2>Edit Donor Profile</h2>
       <form onSubmit={handleSubmit}>
         {[
           { label: "Name", name: "name", type: "text" },
-          { label: "Phone", name: "phone", type: "text" },
-          { label: "Alternate Phone", name: "alternatePhone", type: "text" },
+          { label: "Phone", name: "mobile", type: "text" },
           { label: "Address", name: "address", type: "text" },
-          { label: "City", name: "city", type: "text" },
-          { label: "State", name: "state", type: "text" },
-          { label: "ZIP Code", name: "zipCode", type: "text" },
-          { label: "Country", name: "country", type: "text" },
+          { label: "Weight", name: "weight", type: "number" },
+          { label: "Height", name: "height", type: "number" },
+          { label: "Last donation", name: "lastDonation", type: "date" },
           { label: "Email", name: "email", type: "email" },
-          { label: "New Password (optional)", name: "password", type: "password" },
         ].map(({ label, name, type }) => (
           <div className="input-group" key={name}>
             <label>{label}:</label>
@@ -133,7 +114,7 @@ const EditDonorProfile = ({ onSave }) => {
               name={name}
               value={formData[name] || ""}
               onChange={handleChange}
-              required={name !== "password"}
+              
             />
           </div>
         ))}
@@ -151,4 +132,4 @@ const EditDonorProfile = ({ onSave }) => {
   );
 };
 
-export default EditDonorProfile;
+export default EditDonorDashboard;

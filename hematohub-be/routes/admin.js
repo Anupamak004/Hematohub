@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import Hospital from '../models/hospital.js';
 import Donor from '../models/donor.js';
 import { sendNotification } from '../utils/notifications.js';
+import adminAuth from "../middleware/adminAuth.js"; // Adjust the path if necessary
+
 
 const router = express.Router();
 
@@ -80,5 +82,35 @@ router.post('/notify-donors', async (req, res) => {
         res.status(500).json({ message: 'Error sending notifications' });
     }
 });
+
+router.delete("/donors/:id", adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const donor = await Donor.findByIdAndDelete(id);
+
+        if (!donor) {
+            return res.status(404).json({ message: "Donor not found" });
+        }
+
+        res.json({ message: "Donor deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting donor:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
+
+
+router.delete("/hospitals/:id", adminAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await Hospital.findByIdAndDelete(id);
+        res.json({ message: "Hospital deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Error deleting hospital" });
+    }
+});
+
 
 export default router;

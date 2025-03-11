@@ -1,104 +1,96 @@
-/* General Container */
-.edit-profile-container {
-  
+/* EditDonorProfile.css */
+
+.edit-donor-dashboard {
+  width: 90%;
+  margin: 50px auto;
+  padding: 30px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Form Header */
-h2 {
+.edit-donor-dashboard h2 {
   text-align: center;
+  margin-bottom: 25px;
   color: #333;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-/* Input Groups */
+.edit-donor-dashboard form{
+  display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 97%;
+}
+
 .input-group {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .input-group label {
-  display: block;
   font-weight: 600;
+  margin-bottom: 8px;
   color: #444;
-  font-size: 16px;
-  margin-bottom: 6px;
 }
 
 .input-group input {
   width: 100%;
   padding: 12px;
-  border: 1.5px solid #ccc;
-  border-radius: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   font-size: 16px;
-  background: #f9f9f9;
+  background: #fff;
+  transition: border 0.3s;
 }
 
 .input-group input:focus {
   border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
   outline: none;
 }
 
-/* Button Group */
 .button-group {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 25px;
 }
 
-/* Buttons */
-.save-button,
-.back-button {
+.back-button, .save-button {
   flex: 1;
   padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
   border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  text-align: center;
-  border-radius: 8px;
-  transition: all 0.3s ease-in-out;
-}
-
-.save-button {
-  background: #28a745;
-  color: white;
-  margin-left: 10px;
-}
-
-.save-button:hover {
-  background: #218838;
+  transition: background 0.3s, transform 0.2s;
 }
 
 .back-button {
-  background: #dc3545;
-  color: white;
-  margin-right: 10px;
+  background: #6c757d;
+  color: #fff;
+  margin-right: 15px;
 }
 
 .back-button:hover {
-  background: #c82333;
+  background: #5a6268;
+  transform: scale(1.05);
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
-  .edit-profile-container {
-    width: 90%;
-    padding: 25px;
-  }
+.save-button {
+  background: #007bff;
+  color: #fff;
+}
 
-  .input-group input {
-    font-size: 14px;
-    padding: 10px;
-  }
+.save-button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
 
-  .button-group {
-    flex-direction: column;
-  }
-
-  .save-button,
-  .back-button {
-    margin: 5px 0;
-    font-size: 14px;
-  }
+.save-button:hover:not(:disabled) {
+  background: #0056b3;
+  transform: scale(1.05);
 }

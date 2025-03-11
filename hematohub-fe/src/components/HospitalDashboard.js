@@ -1,296 +1,106 @@
 import React, { useEffect, useState } from "react";
-import { FaSignOutAlt, FaHistory, FaUser, FaEdit, FaBars, FaTimes } from "react-icons/fa";
-import { MdLocalHospital, MdBloodtype, MdLogout, MdMenu, MdEmergency, MdHistory, MdNotifications } from "react-icons/md";
 import { Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
-import "./HospitalDashboard.css";
 import { useNavigate } from "react-router-dom";
+import { MdMenu, MdBloodtype, MdEmergency, MdHistory, MdNotifications, MdLocalHospital, MdLogout } from "react-icons/md";
+import "./HospitalDashboard.css";
+import { FaSignOutAlt, FaHistory, FaUser, FaEdit, FaBars, FaTimes } from "react-icons/fa";
+
 
 const HospitalDashboard = () => {
   const [hospitalData, setHospitalData] = useState(null);
-  const navigate = useNavigate();
-  const [bloodStock, setBloodStock] = useState([]);
-  const [currentTab, setCurrentTab] = useState("bloodStock");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bloodRequests, setBloodRequests] = useState([]);
   const [donationHistory, setDonationHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  
-useEffect(() => {
-  const fetchBloodStock = async () => {
-    try {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState("bloodStock");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/hospitals/blood-stock", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch blood stock data");
-      }
-
-      const data = await response.json();
-      setBloodStock(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  fetchBloodStock();
-}, []);
-
-  
-
-  useEffect(() => {
-    const fetchHospitalData = async () => {
       try {
-        const token = localStorage.getItem("token"); // Assuming you store a JWT token
-        const response = await fetch("http://localhost:5000/api/hospitals/dashboard", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Send token for authentication
-          },
+        const res = await fetch("http://localhost:5000/api/hospitals/dashboard", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch hospital data");
-        }
-  
-        const data = await response.json();
-        setHospitalData(data); // Update state with fetched data
-      } catch (error) {
-        console.error(error);
-        alert("Error fetching hospital data, please log in again.");
-        window.location.href = "/login";
-      }
-    };
-  
-    fetchHospitalData();
-  }, []);
-  
-  useEffect(() => {
-    const fetchBloodRequests = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/hospitals/blood-requests", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch blood requests");
-        }
-  
-        const data = await response.json();
-        setBloodRequests(data);
+        const data = await res.json();
+        setHospitalData(data);
       } catch (error) {
         console.error(error);
       }
     };
-  
-    fetchBloodRequests();
-  }, []);
-  
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/hospitals/notifications", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch notifications");
-        }
-  
-        const data = await response.json();
-        setNotifications(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-  
-    fetchNotifications();
-  }, []);
-  
 
-  const chartData = {
-    labels: bloodStock.map((stock) => stock.type),
-    datasets: [
-      {
-        label: "Blood Stock",
-        data: bloodStock.map((stock) => stock.units),
-        backgroundColor: [
-          "#e63946", "#457b9d", "#f4a261", "#2a9d8f", "#e76f51", "#1d3557", "#f1faee", "#333333",
-        ],
-        hoverBackgroundColor: [
-          "#d62828", "#1d3557", "#e76f51", "#219ebc", "#c0392b", "#16a085", "#d5dbdb", "#2c3e50",
-        ],
-      },
-    ],
-  };
+    fetchData();
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("hospital");
-    window.location.href = "/login";
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
-  const handleSubmitRequest = async (event) => {
-    event.preventDefault();
-  
-    const formData = new FormData(event.target);
-    const requestData = {
-      bloodType: formData.get("bloodType"),
-      quantity: formData.get("quantity"),
-      urgency: formData.get("urgency"),
-    };
-  
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/hospitals/blood-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestData),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to submit request");
-      }
-  
-      alert("Blood request submitted successfully!");
-      window.location.reload();
-    } catch (error) {
-      console.error(error);
-      alert("Error submitting request.");
-    }
-  };
-  
-
-  const handleCancelRequest = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/hospitals/blood-requests/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to cancel request");
-      }
-  
-      alert("Blood request cancelled successfully!");
-      window.location.reload();
-    } catch (error) {
-      console.error(error);
-      alert("Error cancelling request.");
-    }
-  };
-  
-const handleEmergencyMode = () => {
-    console.log("Emergency mode activated");
-    // Add logic for handling emergency mode
-};
-
-const navigateTo = (path) => {
-  navigate(path);
-  setSidebarOpen(false); // Close sidebar after navigating
-};
 
 
   return (
-    <div className="hospital_classname-container">
-      <button className="hospital_classname-sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        {sidebarOpen ? <FaTimes /> : <MdMenu />}
-      </button>
-
-      <div className={`hospital_classname-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="hospital_classname-sidebar-content">
-          <button className="hospital_classname-sidebar-btn" onClick={() =>{ setCurrentTab("bloodStock"); setSidebarOpen(false);} }>
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              {sidebarOpen ? <FaTimes /> : <FaBars />}
+            </button>
+      <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        
+    
+        <div className="sidebar-content">
+          <button className="sidebar-btn" onClick={() => setCurrentTab("bloodStock")}>
             <MdBloodtype className="icon-red" /> Blood Stock
           </button>
-          <button className="hospital_classname-sidebar-btn" onClick={() => {setCurrentTab("bloodRequests");setSidebarOpen(false);}}>
+          <button className="sidebar-btn" onClick={() => setCurrentTab("bloodRequests")}>
             <MdEmergency className="icon-orange" /> Blood Requests
           </button>
-          <button className="hospital_classname-sidebar-btn" onClick={() => {setCurrentTab("donationHistory");setSidebarOpen(false);}}>
+          <button className="sidebar-btn" onClick={() => setCurrentTab("donationHistory")}>
             <MdHistory className="icon-purple" /> Donation History
           </button>
-          <button className="hospital_classname-sidebar-btn" onClick={() => {setCurrentTab("notifications");setSidebarOpen(false);}}>
+          <button className="sidebar-btn" onClick={() => setCurrentTab("notifications")}>
             <MdNotifications className="icon-blue" /> Notifications
           </button>
-          <button className="hospital_classname-sidebar-btn" onClick={() => {setCurrentTab("hospitalInfo");setSidebarOpen(false);}}>
+          <button className="sidebar-btn" onClick={() => setCurrentTab("hospitalInfo")}>
             <MdLocalHospital className="icon-blue" /> Hospital Info
           </button>
-          <button className="hospital_classname-sidebar-btn hospital_classname-logout-btn" onClick={handleLogout}>
+          <button className="sidebar-btn logout-btn" onClick={handleLogout}>
             <MdLogout className="icon-yellow" /> Logout
           </button>
         </div>
       </div>
 
-      <div className="hospital_classname-content">
+      {/* Main Content */}
+      <div className={`content ${sidebarOpen ? "sidebar-open" : ""}`}>
         <header>
-          <h1>Welcome {hospitalData?.hospitalName || "Hospital"} </h1>
+          <h1>Welcome, {hospitalData?.hospitalName || "Hospital"} </h1>
         </header>
 
         {currentTab === "bloodStock" && (
-          <section className="hospital_classname-blood-stock-section">
-            <h2>Blood Stock Overview</h2>
-            <div className="hospital_classname-chart-container hospital_classname-glass-card">
-              <Doughnut data={chartData} />
-            </div>
-          </section>
-        )}
+        <section className="blood-stock-section">
+          <h2>Blood Stock Overview</h2>
+          <div className="chart-container glass-card">
+          <Doughnut
+            data={{
+              labels: hospitalData?.bloodStock ? Object.keys(hospitalData.bloodStock) : [],
+              datasets: [
+                {
+                  data: hospitalData?.bloodStock ? Object.values(hospitalData.bloodStock) : [],
+                  backgroundColor: ["#e63946", "#457b9d", "#f4a261", "#2a9d8f"],
+                },
+              ],
+            }}
+          />
+          </div>
+        </section>
+      )}
 
-{currentTab === "bloodRequests" && (
+
+        {currentTab === "bloodRequests" && (
           <section className="blood-requests glass-card">
             <h2>Blood Requests</h2>
-            <div className="request-form">
-              <h3>Submit New Request</h3>
-              <form onSubmit={handleSubmitRequest}>
-                <label>
-                  Blood Type:
-                  <select name="bloodType" required>
-                    <option value="A+">A+</option>
-                    <option value="O+">O+</option>
-                    <option value="B+">B+</option>
-                    <option value="AB+">AB+</option>
-                    <option value="A-">A-</option>
-                    <option value="O-">O-</option>
-                    <option value="B-">B-</option>
-                    <option value="AB-">AB-</option>
-                  </select>
-                </label>
-                <label>
-                  Quantity:
-                  <input type="number" name="quantity" min="1" required />
-                </label>
-                <label>
-                  Urgency:
-                  <select name="urgency" required>
-                    <option value="normal">Normal</option>
-                    <option value="urgent">Urgent</option>
-                    <option value="emergency">Emergency</option>
-                  </select>
-                </label>
-                <button type="submit">Submit Request</button>
-              </form>
-            </div>
-
             <div className="request-table">
               <h3>Existing Requests</h3>
               <div className="table-container">
@@ -301,7 +111,6 @@ const navigateTo = (path) => {
                       <th>Quantity</th>
                       <th>Urgency</th>
                       <th>Status</th>
-                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -311,13 +120,6 @@ const navigateTo = (path) => {
                         <td>{request.quantity}</td>
                         <td>{request.urgency}</td>
                         <td>{request.status}</td>
-                        <td>
-                          {request.status === "Pending" && (
-                            <button onClick={() => handleCancelRequest(request.id)}>
-                              Cancel
-                            </button>
-                          )}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -368,26 +170,11 @@ const navigateTo = (path) => {
           </section>
         )}
 
-        {currentTab === "emergencyMode" && (
-          <section className="emergency-mode glass-card">
-            <h2>Emergency Mode</h2>
-            <p>Activate emergency mode to notify all donors and hospitals about urgent blood needs.</p>
-            <button onClick={handleEmergencyMode}>Activate Emergency Mode</button>
-          </section>
-        )}
-
         {currentTab === "hospitalInfo" && (
           <section className="hospital-info glass-card">
             <h2>Hospital Information</h2>
-            <p>
-              <strong>Name:</strong> {hospitalData?.hospitalName || "Not Available"}
-            </p>
-            <p>
-              <strong>Location:</strong> {hospitalData?.location || "Not Available"}
-            </p>
-            <p>
-              <strong>Email:</strong> {hospitalData?.email || "Not Available"}
-            </p>
+            <p><strong>Name:</strong> {hospitalData?.hospitalName || "Not Available"}</p>
+            <p><strong>Email:</strong> {hospitalData?.email || "Not Available"}</p>
           </section>
         )}
       </div>

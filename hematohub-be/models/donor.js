@@ -18,6 +18,12 @@ const donorSchema = new mongoose.Schema({
   emergency: { type: Boolean, default: false },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  donationHistory: [ // 🆕 NEW FIELD TO STORE HISTORY
+    {
+      previousDonationDate: { type: Date, required: true },
+      nextEligibleDate: { type: Date, required: true }
+    }
+  ]
 });
 
 // Encrypt password before saving
