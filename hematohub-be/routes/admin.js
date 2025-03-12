@@ -16,6 +16,7 @@ const ADMIN_CREDENTIALS = {
     password: "$2b$10$VrIB2ywcAnKdg6Iwx6ihVekpOwf0W5KThZGzjk0RVDNkBw5GVQA8S" // bcrypt hashed password
 };
 
+
 // Admin login
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
@@ -26,7 +27,7 @@ router.post('/login', async (req, res) => {
     if (!validPassword) {
         return res.status(401).json({ message: 'Invalid email or password' });
     }
-    const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ role: 'admin', isAdmin: true }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
 });
 
