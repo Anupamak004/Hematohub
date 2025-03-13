@@ -16,19 +16,27 @@ const ADMIN_CREDENTIALS = {
     password: "$2b$10$VrIB2ywcAnKdg6Iwx6ihVekpOwf0W5KThZGzjk0RVDNkBw5GVQA8S" // bcrypt hashed password
 };
 
+
 // Admin login
-router.post('/login', async (req, res) => {
+
+router.post("/login", async (req, res) => {
     const { email, password } = req.body;
+    
     if (email !== ADMIN_CREDENTIALS.email) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: "Invalid email or password" });
     }
+
     const validPassword = await bcrypt.compare(password, ADMIN_CREDENTIALS.password);
     if (!validPassword) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: "Invalid email or password" });
     }
-    const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Set JWT expiration to 1 hour (3600 seconds)
+    const token = jwt.sign({ role: "admin", isAdmin: true }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
     res.json({ token });
 });
+
 
 // Get all hospitals
 router.get('/hospitals', async (req, res) => {

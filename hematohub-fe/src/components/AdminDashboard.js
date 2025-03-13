@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
+import useAutoLogout from "../utils/auth";
+
 
 function AdminDashboard() {
-    
+    useAutoLogout(); // Auto logout when token expires
+
     const [hospitals, setHospitals] = useState([]);
     const [donors, setDonors] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("donors");
@@ -35,7 +38,7 @@ console.log("Admin Token:", token);
     const handleDelete = async (id, type) => {
         const token = localStorage.getItem("adminToken");
         console.log("Admin Token before delete request:", token); // Debugging log
-    
+        console.log(id);
         if (!token) {
             console.error("No admin token found! Redirecting to login.");
             navigate("/login");

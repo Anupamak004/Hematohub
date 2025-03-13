@@ -9,6 +9,7 @@ const adminAuth = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded.isAdmin);
         if (!decoded.isAdmin) {
             return res.status(403).json({ error: "Access denied. Not an admin." });
         }

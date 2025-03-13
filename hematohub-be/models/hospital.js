@@ -21,6 +21,8 @@ const hospitalSchema = new mongoose.Schema({
   operatingHours: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  donatedBlood: { type: Array, default: [] },  // New field for donated blood records
+  receivedBlood: { type: Array, default: [] }, 
 });
 
 // Encrypt password before saving
