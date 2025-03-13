@@ -14,6 +14,7 @@ export const registerDonor = async (req, res) => {
 
     res.status(201).json({ message: "Registration successful" });
   } catch (error) {
+    alert(error);
     res.status(500).json({ error: "Server Error" });
   }
 };
