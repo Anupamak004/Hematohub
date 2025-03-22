@@ -10,7 +10,10 @@ export const registerHospital = async (req, res) => {
     let hospitalExists = await Hospital.findOne({ email });
     if (hospitalExists) return res.status(400).json({ error: "Hospital already registered" });
 
-    const newHospital = await Hospital.create(req.body);
+    const newHospital = await Hospital.create({
+      ...req.body, // Spread the request body
+      bloodThreshold: { "A+": 5, "A-": 5, "B+": 5, "B-": 5, "AB+": 5, "AB-": 5, "O+": 5, "O-": 5 },
+    });    
     
     res.status(201).json({ message: "Hospital registration successful" });
   } catch (error) {

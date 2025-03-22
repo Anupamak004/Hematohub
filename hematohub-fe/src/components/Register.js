@@ -70,17 +70,28 @@ const Register = () => {
   
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-  const [threshold, setThreshold] = useState({ Aplus: "", Aminus: "", Bplus: "", Bminus: "", ABplus: "", ABminus: "", Oplus: "", Ominus: "" });
+  const [bloodThreshold, setBloodThreshold] = useState({
+    "A+": 5,
+    "A-": 5,
+    "B+": 5,
+    "B-": 5,
+    "AB+": 5,
+    "AB-": 5,
+    "O+": 5,
+    "O-": 5,
+  });
+  
   const [website, setWebsite] = useState("");
   const [operatingHours, setOperatingHours] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
 
-  const validatePhone = (num) => /^[0-9]{10,15}$/.test(num);
+    const validatePhone = (num) => /^[0-9]{10,15}$/.test(num);
     const validateZip = (zip) => /^[0-9]{4,10}$/.test(zip);
     const validateEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
     const validatePassword = (password) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
+
 
     const handleRegister = async (e) => {
       e.preventDefault();
@@ -89,11 +100,26 @@ const Register = () => {
         alert("You must agree to the terms and conditions to register.");
         return;
       }
+
+      // Age validation
+  const today = new Date();
+  const birthDate = new Date(dob);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--; 
+  }
+
+  if (age < 18 || age > 65) {
+    alert("Registration failed : Donors must be between 18 and 65 years old.");
+    return;
+  }
     
       const userData = userType === "donor" ? {
         name, dob, gender, address, weight, height, bloodType, hasDisease, disease, aadhar, mobile, lastDonation, medications, emergency, email, password
       } : {
-        hospitalName, registrationNumber, hospitalType, email, phoneNumber, alternatePhone, address, city, state, zip, country, latitude, longitude, password, bloodBankAvailable, licenseNumber, bloodStock, threshold, website, operatingHours
+        hospitalName, registrationNumber, hospitalType, email, phoneNumber, alternatePhone, address, city, state, zip, country, latitude, longitude, password, bloodBankAvailable, licenseNumber, bloodStock, website, operatingHours
       };
     
       try {
@@ -116,25 +142,7 @@ const Register = () => {
         alert("Failed to register. Try again.");
       }
     };
-    
-
-    const handleValidation = () => {
-      const newErrors = {};
-      
-      if (!validatePhone(mobile)) newErrors.mobile = "Invalid phone number";
-      if (!validateZip(zip)) newErrors.zip = "Invalid ZIP code";
-      if (!validateEmail(email)) newErrors.email = "Invalid email";
-      if (!validatePassword(password)) newErrors.password = "Weak password";
-      if (!validatePassword(aadhar)) newErrors.aadhar = "Weak password";
-
-
-
-      setErrors(newErrors);
-
-      if (Object.keys(newErrors).length === 0) {
-          console.log("Form is valid");
-      }
-  };
+  
   
 
   return (
@@ -219,12 +227,14 @@ const Register = () => {
         <label>Aadhar Number *</label>
         <input type="text" placeholder="Enter your Aadhar number" value={aadhar} onChange={(e) => setAadhar(e.target.value)} required />
         {errors.aadhar && <p>{errors.aadhar}</p>}
+        {!validateAadhar(aadhar) && aadhar && <p className="error">Invalid aadhar number</p>}
       </div>
 
       <div className="input-box">
         <label>Mobile Number *</label>
         <input type="tel" placeholder="Enter your mobile number" value={mobile} onChange={(e) => setMobile(e.target.value)} required />
         {errors.mobile&& <p>{errors.mobile}</p>}
+        {!validatePhone(mobile) && mobile && <p className="error">Invalid phone number</p>}
       </div>
 
       <div className="input-box">
