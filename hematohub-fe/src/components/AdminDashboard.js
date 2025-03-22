@@ -94,9 +94,9 @@ console.log("Admin Token:", token);
     return (
         <div className="admin-current">
             <aside className="admin-current-sidebar">
-                <button onClick={() => setSelectedCategory("donors")} className={selectedCategory === "donors" ? "admin-current-active" : ""}>Donors</button>
-                <button onClick={() => setSelectedCategory("hospitals")} className={selectedCategory === "hospitals" ? "admin-current-active" : ""}>Hospitals</button>
-                <button onClick={handleLogout}>Logout</button>
+                <button onClick={() => setSelectedCategory("donors")} className={selectedCategory === "donors" ? "admin-current-active" : ""}><strong>Donors</strong></button>
+                <button onClick={() => setSelectedCategory("hospitals")} className={selectedCategory === "hospitals" ? "admin-current-active" : ""}><strong>Hospitals</strong></button>
+                <button onClick={handleLogout}><strong>Logout</strong></button>
             </aside>
 
             <div className="admin-current-content">
@@ -120,8 +120,43 @@ console.log("Admin Token:", token);
                                     {expandedId === donor._id && (
                                         <div className="admin-current-details">
                                             <p><strong>Age:</strong> {calculateAge(donor.dob)}</p>
-                                            <p><strong>Contact:</strong> {donor.mobile}</p>
-                                            <p><strong>Address:</strong> {donor.address}</p>
+                <p><strong>Gender:</strong> {donor.gender}</p>
+                <p><strong>Contact:</strong> {donor.mobile}</p>
+                <p><strong>Email:</strong> {donor.email}</p>
+                <p><strong>Address:</strong> {donor.address}</p>
+                <p><strong>Weight:</strong> {donor.weight} kg</p>
+                <p><strong>Height:</strong> {donor.height} cm</p>
+                <p><strong>Has Disease:</strong> {donor.hasDisease ? "Yes" : "No"}</p>
+                {donor.hasDisease && <p><strong>Disease:</strong> {donor.disease}</p>}
+                <p><strong>Aadhar:</strong> {donor.aadhar}</p>
+                <p><strong>Last Donation:</strong> {donor.lastDonation ? new Date(donor.lastDonation).toLocaleDateString() : "Never"}</p>
+                <p><strong>Medications:</strong> {donor.medications || "None"}</p>
+                <p><strong>Emergency:</strong> {donor.emergency ? "Yes" : "No"}</p>
+
+                {/* Display Latest Eligible Date */}
+                {donor.donationHistory.length > 0 && (
+                    <p><strong>Next Eligible Date:</strong> {new Date(donor.donationHistory[donor.donationHistory.length - 1].nextEligibleDate).toLocaleDateString()}</p>
+                )}
+
+                <h3>Donation History</h3>
+                {donor.donationHistory.length > 0 ? (
+                    <table className="donation-history-table">
+                        <thead>
+                            <tr>
+                                <th>Previous Donation Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {donor.donationHistory.map((entry, index) => (
+                                <tr key={index}>
+                                    <td>{new Date(entry.previousDonationDate).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No donation history available.</p>
+                )}
                                         </div>
                                     )}
                                 </li>

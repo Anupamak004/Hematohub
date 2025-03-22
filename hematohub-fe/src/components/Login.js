@@ -43,7 +43,7 @@ const Login = () => {
       // Redirect based on user type
       navigate(userType === "admin" ? "/admin-dashboard" : `/${userType}-dashboard`);
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      alert(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,11 @@ const Login = () => {
                 name="userType"
                 value={type}
                 checked={userType === type}
-                onChange={() => setUserType(type)}
+                onChange={() => {
+                  setUserType(type);
+                  setEmail(""); // Clear email field
+                  setPassword(""); // Clear password field
+                }}
               />
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </label>

@@ -16,13 +16,16 @@ const hospitalSchema = new mongoose.Schema({
   longitude: { type: String },
   licenseNumber: { type: String, required: true, unique: true },
   bloodStock: { type: Object, default: {} },
-  threshold: { type: Object, default: {} },
   website: { type: String },
   operatingHours: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   donatedBlood: { type: Array, default: [] },  // New field for donated blood records
-  receivedBlood: { type: Array, default: [] }, 
+  receivedBlood: { type: Array, default: [] },
+  bloodThreshold: {
+    type: Object,
+    default: { "A+": 5, "A-": 5, "B+": 5, "B-": 5, "AB+": 5, "AB-": 5, "O+": 5, "O-": 5 },
+  }, 
 });
 
 // Encrypt password before saving
