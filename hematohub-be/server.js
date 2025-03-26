@@ -6,6 +6,7 @@ import donorRoutes from "./routes/donorRoutes.js";
 import hospitalRoutes from "./routes/hospitalRoutes.js";
 import adminRoutes from './routes/admin.js';
 import bloodRoutes from "./routes/blood.js"; // Import blood routes
+import recipientRoutes from "./routes/recipient.js";
 
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use("/api/donors", donorRoutes);
 app.use("/api/hospitals", hospitalRoutes);
 app.use('/api/admin', adminRoutes);
 app.use("/api/blood", bloodRoutes); // Register new blood routes
+app.use("/api/recipients", recipientRoutes);
 
 
 app.use((err, req, res, next) => {

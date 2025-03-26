@@ -7,6 +7,8 @@ import {
 } from "react-icons/md";
 import { FaBars, FaTimes } from "react-icons/fa";
 import "./HospitalDashboard.css";
+import axios from "axios";
+
 
 
 const HospitalDashboard = () => {
@@ -27,8 +29,11 @@ const [receivedFrom, setReceivedFrom] = useState("");
 const [receivedBloodType, setReceivedBloodType] = useState("");
 const [receivedDate, setReceivedDate] = useState("");
 const [receivedUnits, setReceivedUnits] = useState("");
+const [urgentBloodType, setUrgentBloodType] = useState("");
+  const [urgentUnits, setUrgentUnits] = useState("");
+  const [message, setMessage] = useState("");
 
-
+  const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] || [];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,6 +71,25 @@ const [receivedUnits, setReceivedUnits] = useState("");
         [bloodType]: (prevData.bloodStock[bloodType] || 0) + change,
       },
     }));
+  };
+
+  const requestUrgentBlood = async () => {
+    if (!urgentBloodType || !urgentUnits) {
+      setMessage("Please select a blood type and enter the required units.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/hospitals/request-blood", {
+        hospitalId: hospitalData._id,
+        bloodType: urgentBloodType,
+        units: urgentUnits,
+      });
+
+      setMessage(response.data.message || "Urgent blood request sent successfully.");
+    } catch (error) {
+      setMessage(error.response?.data?.error || "Failed to send urgent blood request.");
+    }
   };
   
 
@@ -129,7 +153,62 @@ const [receivedUnits, setReceivedUnits] = useState("");
       alert("Error submitting received blood.");
     }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
   
+    const newDonation = {
+      recipientName,
+      bloodType,
+      date,
+      units: Number(units),
+      hospitalId: hospitalData, // Get hospitalId from auth or state
+    };
+
+    console.log(recipientName,bloodType,date,units,hospitalData._id);
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/recipients/donate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newDonation),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Done");
+        setDonatedBlood([...donatedBlood, data.donation]);
+        setRecipientName("");
+        setBloodType("");
+        setDate("");
+        setUnits("");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchDonatedBlood = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/recipients/donated-blood/${hospitalData}`);
+        const data = await response.json();
+  
+        if (Array.isArray(data)) {
+          setDonatedBlood(data);
+        } else {
+          setDonatedBlood([]); // Handle case where no data is found
+        }
+      } catch (error) {
+        console.error("Error fetching donated blood data:", error);
+        setDonatedBlood([]);
+      }
+    };
+  
+    fetchDonatedBlood();
+  }, [hospitalData]);
   
 
   return (
@@ -159,9 +238,9 @@ const [receivedUnits, setReceivedUnits] = useState("");
           <button className="sidebar-btn" onClick={() => setCurrentTab("receivedBlood")}>
             <MdMoveToInbox className="icon-blue" /> Received Blood
           </button>
-          <button className="sidebar-btn" onClick={() => setCurrentTab("notifications")}>
+          {/*<button className="sidebar-btn" onClick={() => setCurrentTab("notifications")}>
             <MdNotifications className="icon-blue" /> Notifications
-          </button>
+          </button>*/}
           
           <button className="sidebar-btn logout-btn" onClick={handleLogout}>
             <MdLogout className="icon-yellow" /> Logout
@@ -172,7 +251,7 @@ const [receivedUnits, setReceivedUnits] = useState("");
       {/* Main Content */}
       <div className={`content ${sidebarOpen ? "sidebar-open" : ""}`}>
         <header>
-          <h1><strong>WELCOME, {hospitalData?.hospitalName || "Hospital"}</strong></h1>
+          <h1><strong>WELCOME  {hospitalData?.hospitalName || "Hospital"}</strong></h1>
         </header>
 
         {currentTab === "bloodStock" && (
@@ -202,21 +281,7 @@ const [receivedUnits, setReceivedUnits] = useState("");
     <div className="donation-form glass-card">
       <h3>Add New Donation</h3>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const newDonation = {
-            id: Date.now(), // Temporary unique ID
-            recipientName,
-            bloodType,
-            date,
-            units: Number(units),
-          };
-          setDonatedBlood([...donatedBlood, newDonation]); // Update state
-          setRecipientName(""); // Reset fields
-          setBloodType("");
-          setDate("");
-          setUnits("");
-        }}
+        onSubmit={handleSubmit}
       >
         <label>Recipient Name:</label>
         <input
@@ -251,54 +316,54 @@ const [receivedUnits, setReceivedUnits] = useState("");
 
     {/* Summary Table */}
     <div className="summary-table glass-card">
-      <h3>Donation Summary</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Blood Type</th>
-            <th>Total Units Donated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(
-            donatedBlood.reduce((acc, donation) => {
-              acc[donation.bloodType] = (acc[donation.bloodType] || 0) + donation.units;
-              return acc;
-            }, {})
-          ).map(([bloodType, totalUnits]) => (
-            <tr key={bloodType}>
-              <td>{bloodType}</td>
-              <td>{totalUnits}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+  <h3>Donation Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Blood Type</th>
+        <th>Total Units Donated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {Object.entries(
+        donatedBlood.reduce((acc, donation) => {
+          acc[donation.bloodType] = (acc[donation.bloodType] || 0) + donation.units;
+          return acc;
+        }, {})
+      ).map(([bloodType, totalUnits]) => (
+        <tr key={bloodType}>
+          <td>{bloodType}</td>
+          <td>{totalUnits}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
     {/* Detailed Donation History */}
     <div className="table-container">
-      <h3>Donation Details</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Recipient Name</th>
-            <th>Blood Type</th>
-            <th>Date</th>
-            <th>Units</th>
-          </tr>
-        </thead>
-        <tbody>
-          {donatedBlood.map((donation) => (
-            <tr key={donation.id}>
-              <td>{donation.recipientName}</td>
-              <td>{donation.bloodType}</td>
-              <td>{donation.date}</td>
-              <td>{donation.units}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+  <h3>Donation Details</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Recipient Name</th>
+        <th>Blood Type</th>
+        <th>Date</th>
+        <th>Units</th>
+      </tr>
+    </thead>
+    <tbody>
+      {donatedBlood.map((donation) => (
+        <tr key={donation._id}>
+          <td>{donation.recipientName}</td>
+          <td>{donation.bloodType}</td>
+          <td>{new Date(donation.date).toLocaleDateString()}</td>
+          <td>{donation.units}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
   </section>
 )}
 
@@ -451,6 +516,47 @@ const [receivedUnits, setReceivedUnits] = useState("");
     <p><strong>License Number:</strong> {hospitalData?.licenseNumber || "Not Available"}</p>
     
   </section>
+)}
+
+
+{currentTab === "bloodRequests" && (
+  <section className="urgent-request glass-card">
+  <h2>Request Urgent Blood</h2>
+
+  <div className="form-group">
+    <label htmlFor="bloodType">Select Blood Type:</label>
+    <select
+      id="bloodType"
+      value={urgentBloodType}
+      onChange={(e) => setUrgentBloodType(e.target.value)}
+      required
+    >
+      <option value="">Select Blood Type</option>
+      <option value="ALL">All Blood Types</option>
+      {bloodTypes.map((type) => (
+        <option key={type} value={type}>{type}</option>
+      ))}
+    </select>
+  </div>
+
+  <div className="form-group">
+    <label htmlFor="units">Units Required:</label>
+    <input
+      id="units"
+      type="number"
+      min="1"
+      value={urgentUnits}
+      onChange={(e) => setUrgentUnits(e.target.value)}
+      required
+    />
+  </div>
+
+  <button className="primary-button" onClick={() => requestUrgentBlood(urgentBloodType, urgentUnits)}>
+    Send Urgent Request
+  </button>
+
+  {message && <p className="status-message">{message}</p>}
+</section>
 )}
 
       </div>

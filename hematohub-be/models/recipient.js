@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import Hospital from "./hospital.js";
 
 const recipientSchema = new mongoose.Schema({
-  recipientId: { type: mongoose.Schema.Types.ObjectId, ref: "Recipient", required: true },
-  hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital", required: true },
+  recipientName: { type: String, required: true },
   bloodType: { type: String, required: true },
-  quantity: { type: Number, required: true },
-  date: { type: Date, default: Date.now }
+  date: { type: String, required: true },
+  units: { type: Number, required: true },
+  hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: Hospital, required: true },
 });
 
 const Recipient = mongoose.model("Recipient", recipientSchema);
