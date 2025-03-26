@@ -154,30 +154,34 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    if (!hospitalData || !hospitalData._id) {
+      alert("Hospital data is missing. Please refresh the page.");
+      return;
+    }
+
     const newDonation = {
       recipientName,
       bloodType,
       date,
       units: Number(units),
-      hospitalId: hospitalData, // Get hospitalId from auth or state
+      hospitalId: hospitalData._id, // Ensure hospital ID is used correctly
     };
 
-    console.log(recipientName,bloodType,date,units,hospitalData._id);
-  
     try {
       const response = await fetch("http://localhost:5000/api/recipients/donate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newDonation),
       });
-  
+
       const data = await response.json();
       if (response.ok) {
-        console.log("Done");
-        setDonatedBlood([...donatedBlood, data.donation]);
+        console.log("Donation successfully added");
+        setDonatedBlood((prev) => [...prev, data.donation]); // Update state properly
         setRecipientName("");
         setBloodType("");
         setDate("");
@@ -190,23 +194,24 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     }
   };
 
+
   useEffect(() => {
     const fetchDonatedBlood = async () => {
+      if (!hospitalData || !hospitalData._id) return; // Prevent API call if hospitalData is missing
+
       try {
-        const response = await fetch(`http://localhost:5000/api/recipients/donated-blood/${hospitalData}`);
+        const response = await fetch(
+          `http://localhost:5000/api/recipients/donated-blood/${hospitalData._id}`
+        );
         const data = await response.json();
-  
-        if (Array.isArray(data)) {
-          setDonatedBlood(data);
-        } else {
-          setDonatedBlood([]); // Handle case where no data is found
-        }
+
+        setDonatedBlood(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching donated blood data:", error);
         setDonatedBlood([]);
       }
     };
-  
+
     fetchDonatedBlood();
   }, [hospitalData]);
   
