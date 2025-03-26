@@ -132,6 +132,31 @@ const getDonorDetails = asyncHandler(async (req, res) => {
   res.json(donor);
 });
 
+export const calculateEligibility = (donor) => {
+  const age = getAge(donor.dob);
+  const bmi = donor.height && donor.weight ? donor.weight / ((donor.height / 100) ** 2) : null;
+  const currentDate = new Date();
+  let nextDonationDate = null;
+
+  if (donor.lastDonation) {
+      nextDonationDate = new Date(donor.lastDonation);
+      nextDonationDate.setMonth(nextDonationDate.getMonth() + 3);
+  }
+
+  if (age < 18 || age > 65) return false;
+  if (bmi && (bmi < 18.5 || bmi > 30)) return false;
+  if (donor.hasDisease || donor.medications) return false;
+  if (nextDonationDate && currentDate < nextDonationDate) return false;
+
+  return true;
+};
+
+const getAge = (dob) => {
+  const birthDate = new Date(dob);
+  const diff = new Date() - birthDate;
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+};
+
 // @desc    Update donor details
 // @route   PUT /api/donors/:id
 // @access  Private
@@ -151,8 +176,12 @@ const updateDonorDetails = asyncHandler(async (req, res) => {
   donor.lastDonation = req.body.lastDonation || donor.lastDonation;  // Match frontend field
   donor.email = req.body.email || donor.email;
 
+  donor.eligibility = calculateEligibility(donor);
+  
   await donor.save();
   res.json({ message: "Donor details updated successfully", donor });
 });
 
 export { getDonorDetails, updateDonorDetails };
+
+

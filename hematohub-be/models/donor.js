@@ -18,6 +18,8 @@ const donorSchema = new mongoose.Schema({
   emergency: { type: Boolean, default: false },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  eligibility: { type: Boolean, default: false },// ✅ NEW FIELD (true = Yes, false = No)
+
   donationHistory: [ // 🆕 NEW FIELD TO STORE HISTORY
     {
       previousDonationDate: { type: Date, required: true },

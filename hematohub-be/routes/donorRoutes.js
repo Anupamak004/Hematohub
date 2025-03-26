@@ -7,7 +7,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import { getDonorDetails, updateDonorDetails } from "../controllers/donorController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import Donor from "../models/donor.js"; // Import donor model
-
+import { calculateEligibility } from "../controllers/donorController.js";
 
 const router = express.Router();
 
@@ -75,11 +75,13 @@ router.get("/:id", authMiddleware, async (req, res) => {
 
         // Update last donation
         donor.lastDonation = newDonationDate;
+        donor.eligibility = calculateEligibility(donor);
         await donor.save();
 
         res.json({ 
             message: "Donation history updated successfully", 
-            donationHistory: donor.donationHistory
+            donationHistory: donor.donationHistory,
+            eligibility: donor.eligibility
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
