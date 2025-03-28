@@ -28,93 +28,83 @@ router.get("/:id", authMiddleware, async (req, res) => {
   });
   
   // PUT: Update donor profile
-  router.put("/:id", authMiddleware, async (req, res) => {
-    try {
-      const { password, ...updateData } = req.body;
-  
-      if (password) {
-        const salt = await bcrypt.genSalt(10);
-        updateData.password = await bcrypt.hash(password, salt);
-      }
-  
-      const updatedDonor = await Donor.findByIdAndUpdate(
-        req.params.id,
-        { $set: updateData },
-        { new: true }
-      );
-  
-      if (!updatedDonor) return res.status(404).json({ message: "Donor not found" });
-  
-      res.json({ message: "Profile updated successfully", donor: updatedDonor });
-    } catch (error) {
-      res.status(500).json({ message: "Error updating profile" });
-    }
-  });
 
 
-  // 🟢 PUT: Update last donation date
-  router.put("/:donorId/donations", async (req, res) => {
-    try {
-        const { lastDonation } = req.body;
-        const donor = await Donor.findById(req.params.donorId);
-  
-        if (!donor) return res.status(404).json({ message: "Donor not found" });
-  
-        // Convert string to Date
-        const newDonationDate = new Date(lastDonation);
-
-        // Calculate next eligible date (3 months later)
-        const nextEligibleDate = new Date(newDonationDate);
-        nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 3);
-
-        // Save the new donation history entry
-        donor.donationHistory.push({
-            previousDonationDate: newDonationDate,
-            nextEligibleDate: nextEligibleDate
-        });
-
-        // Update last donation
-        donor.lastDonation = newDonationDate;
-        donor.eligibility = calculateEligibility(donor);
-        await donor.save();
-
-        res.json({ 
-            message: "Donation history updated successfully", 
-            donationHistory: donor.donationHistory,
-            eligibility: donor.eligibility
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error });
-    }
-});
-
-
-
-
-
+// 🟢 GET: Fetch donation history for a donor
 router.get("/:donorId/donations", async (req, res) => {
-    try {
-        const donor = await Donor.findById(req.params.donorId);
-        if (!donor) return res.status(404).json({ message: "Donor not found" });
+  try {
+    const donor = await Donor.findById(req.params.donorId);
+    if (!donor) return res.status(404).json({ message: "Donor not found" });
 
-        // Convert lastDonation to yyyy-MM-dd format
-        const previousDonationDate = donor.lastDonation
-            ? donor.lastDonation.toISOString().split("T")[0] // Extract only the date part
-            : null;
-
-        // Calculate next eligible date (3 months later)
-        const nextEligibleDate = donor.lastDonation
-            ? new Date(new Date(donor.lastDonation).setMonth(new Date(donor.lastDonation).getMonth() + 3))
-                  .toISOString()
-                  .split("T")[0]
-            : "Not available";
-
-        res.json([{ previousDonationDate, nextEligibleDate }]);
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error });
-    }
+    res.json(donor.donationHistory); // Return full donation history
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
 });
 
-  
+// 🟢 PUT: Update last donation date & save history
+router.put("/:donorId/donations", async (req, res) => {
+  try {
+    const { lastDonation } = req.body;
+    const donor = await Donor.findById(req.params.donorId);
+
+    if (!donor) return res.status(404).json({ message: "Donor not found" });
+
+    // Convert string to Date
+    const newDonationDate = new Date(lastDonation);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of the day
+
+    // 🚫 Prevent future dates
+    if (newDonationDate > today) {
+      return res.status(400).json({ message: "Error: Future dates are not allowed." });
+    }
+
+    // 🚫 Prevent entering a date before the last donation date
+    if (donor.lastDonation && newDonationDate < donor.lastDonation) {
+      return res.status(400).json({
+        message: `Error: Donation date cannot be before your last recorded donation on ${donor.lastDonation.toISOString().split("T")[0]}.`
+      });
+    }
+
+    // 🚫 Enforce 3-month restriction
+    if (donor.lastDonation) {
+      const lastDonationDate = new Date(donor.lastDonation);
+      const minNextDonationDate = new Date(lastDonationDate);
+      minNextDonationDate.setDate(minNextDonationDate.getDate() + 90); // 90-day restriction
+
+      if (newDonationDate < minNextDonationDate) {
+        return res.status(400).json({ 
+          message: `Error: You must wait at least 3 months (until ${minNextDonationDate.toISOString().split("T")[0]}) before donating again.` 
+        });
+      }
+    }
+
+    // Calculate next eligible date (3 months later)
+    const nextEligibleDate = new Date(newDonationDate);
+    nextEligibleDate.setMonth(nextEligibleDate.getMonth() + 3);
+
+    // Save the new donation history entry
+    donor.donationHistory.push({
+      previousDonationDate: newDonationDate,
+      nextEligibleDate: nextEligibleDate
+    });
+
+    // Update last donation
+    donor.lastDonation = newDonationDate;
+    donor.eligibility = new Date() >= nextEligibleDate; // Eligibility check
+    await donor.save();
+
+    res.json({ 
+      message: "Donation history updated successfully", 
+      donationHistory: donor.donationHistory,
+      eligibility: donor.eligibility
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+
 
 export default router;

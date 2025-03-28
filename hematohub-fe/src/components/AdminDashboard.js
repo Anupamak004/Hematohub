@@ -32,7 +32,7 @@ console.log("Admin Token:", token);
 
     const handleLogout = () => {
         localStorage.removeItem("adminToken");
-        navigate("/login");
+        navigate("/");
     };
 
     const handleDelete = async (id, type) => {
@@ -41,7 +41,7 @@ console.log("Admin Token:", token);
         console.log(id);
         if (!token) {
             console.error("No admin token found! Redirecting to login.");
-            navigate("/login");
+            navigate("/");
             return;
         }
     

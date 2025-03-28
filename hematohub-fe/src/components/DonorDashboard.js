@@ -110,7 +110,7 @@ const DonorDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     alert("Logged out successfully!");
-    navigate("/login");
+    navigate("/");
   };
 
   if (loading) {

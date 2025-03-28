@@ -21,7 +21,7 @@ const HospitalDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState("bloodStock");
   const navigate = useNavigate();
-  const [recipientName, setRecipientName] = useState("");
+  const [recipientName, setRecipientName] = useState([]);
 const [bloodType, setBloodType] = useState("");
 const [date, setDate] = useState("");
 const [units, setUnits] = useState("");
@@ -32,6 +32,7 @@ const [receivedUnits, setReceivedUnits] = useState("");
 const [urgentBloodType, setUrgentBloodType] = useState("");
   const [urgentUnits, setUrgentUnits] = useState("");
   const [message, setMessage] = useState("");
+  
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] || [];
 
@@ -60,7 +61,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/");
   };
 
   const updateBloodStock = (bloodType, change) => {
@@ -93,66 +94,62 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   };
   
 
-  const handleSubmitDonated = async (e) => {
-    e.preventDefault();
+
+  const fetchHospitalData = async () => {
     const token = localStorage.getItem("token");
   
     try {
-      const res = await fetch("http://localhost:5000/api/blood/donated", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ recipientName, bloodType, date, units }),
+      const res = await fetch("http://localhost:5000/api/hospitals/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      if (res.ok) {
-        alert("Blood donation recorded successfully!");
-        updateBloodStock(bloodType, -Number(units)); // Reduce stock
-        setRecipientName("");
-        setBloodType("");
-        setDate("");
-        setUnits("");
-      } else {
-        alert("Error submitting donation.");
-      }
+      const data = await res.json();
+      setHospitalData(data);
+      setBloodRequests(data.bloodRequests || []);
+      setDonationHistory(data.donationHistory || []);
+      setDonatedBlood(data.donatedBlood || []);
+      setReceivedBlood(data.receivedBlood || []);
+      setNotifications(data.notifications || []);
     } catch (error) {
-      console.error(error);
-      alert("Error submitting donation.");
+      console.error("Error fetching hospital data:", error);
+    }
+  };
+  
+
+  const fetchDonatedBlood = async () => {
+    if (!hospitalData || !hospitalData._id) return;
+  
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/recipients/donated-blood/${hospitalData._id}`
+      );
+      const data = await response.json();
+  
+      // Update the state with the latest donation data
+      setDonatedBlood(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching donated blood data:", error);
+      setDonatedBlood([]);
+    }
+  };
+
+
+  const fetchReceivedBlood = async () => {
+    if (!hospitalData || !hospitalData._id) return;
+  
+    try {
+      const res = await fetch(`http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`);
+      const data = await res.json();
+  
+      console.log(data);
+      setReceivedBlood(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching received blood data:", error);
+      setReceivedBlood([]);
+
     }
   };
   
   
-  const handleSubmitReceived = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-  
-    try {
-      const res = await fetch("http://localhost:5000/api/blood/received", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ receivedFrom, receivedBloodType, receivedDate, receivedUnits }),
-      });
-  
-      if (res.ok) {
-        alert("Blood received recorded successfully!");
-        updateBloodStock(receivedBloodType, Number(receivedUnits)); // Increase stock
-        setReceivedFrom("");
-        setReceivedBloodType("");
-        setReceivedDate("");
-        setReceivedUnits("");
-      } else {
-        alert("Error submitting received blood.");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error submitting received blood.");
-    }
-  };
 
 
   const handleSubmit = async (e) => {
@@ -180,8 +177,10 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
       const data = await response.json();
       if (response.ok) {
+        alert("Donation successfully added");
         console.log("Donation successfully added");
         setDonatedBlood((prev) => [...prev, data.donation]); // Update state properly
+        fetchDonatedBlood();
         setRecipientName("");
         setBloodType("");
         setDate("");
@@ -204,8 +203,14 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           `http://localhost:5000/api/recipients/donated-blood/${hospitalData._id}`
         );
         const data = await response.json();
+         
+        console.log("Fetched Donated Blood Data:", data); // Debugging step
 
-        setDonatedBlood(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setDonatedBlood(data);
+      } else {
+        setDonatedBlood([]); // Ensure it's always an array
+      }
       } catch (error) {
         console.error("Error fetching donated blood data:", error);
         setDonatedBlood([]);
@@ -215,6 +220,81 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     fetchDonatedBlood();
   }, [hospitalData]);
   
+
+
+  const handleSubmitReceived = async (e) => {
+    e.preventDefault();
+  
+    if (!hospitalData || !hospitalData._id) {
+      alert("Hospital data is missing. Please refresh the page.");
+      return;
+    }
+  
+    const newReceivedBlood = {
+      receivedFrom,
+      bloodType: receivedBloodType,
+      receivedDate,
+      units: Number(receivedUnits),
+      hospitalId: hospitalData._id, // Ensure hospital ID is used correctly
+    };
+
+    console.log(receivedFrom,receivedBloodType,receivedDate,receivedUnits,hospitalData);
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/recipients/receive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newReceivedBlood),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        alert("Blood received entry successfully added");
+        console.log("Blood received entry successfully added");
+        setReceivedBlood((prev) => [...prev, data.received]); // Update state properly
+        console.log("Newly Received Blood Entry:", data);
+        fetchReceivedBlood();
+        setReceivedFrom("");
+        setReceivedBloodType("");
+        setReceivedDate("");
+        setReceivedUnits("");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+  
+
+  useEffect(() => {
+    const fetchReceivedBlood = async () => {
+      if (!hospitalData || !hospitalData._id) return; // Prevent API call if hospitalData is missing
+  
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`
+        );
+        const data = await response.json();
+  
+        console.log("Fetched Received Blood Data:", data); // Debugging step
+  
+        if (Array.isArray(data)) {
+          setReceivedBlood(data);
+        } else {
+          setReceivedBlood([]); // Ensure it's always an array
+        }
+      } catch (error) {
+        console.error("Error fetching received blood data:", error);
+        setReceivedBlood([]);
+      }
+    };
+  
+    fetchReceivedBlood();
+  }, [hospitalData]);
+  
+
+
 
   return (
     <div className="dashboard-container">
@@ -228,7 +308,10 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
         <button className="sidebar-btn" onClick={() => setCurrentTab("hospitalInfo")}>
             <MdLocalHospital className="icon-blue" /> Hospital Info
           </button>
-          <button className="sidebar-btn" onClick={() => setCurrentTab("bloodStock")}>
+          <button className="sidebar-btn" onClick={() => {
+    setCurrentTab("bloodStock"); 
+    fetchHospitalData(); // Fetch latest data
+  }}>
             <MdBloodtype className="icon-red" /> Blood Stock
           </button>
           <button className="sidebar-btn" onClick={() => setCurrentTab("bloodRequests")}>
@@ -330,17 +413,25 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
       </tr>
     </thead>
     <tbody>
-      {Object.entries(
-        donatedBlood.reduce((acc, donation) => {
-          acc[donation.bloodType] = (acc[donation.bloodType] || 0) + donation.units;
-          return acc;
-        }, {})
-      ).map(([bloodType, totalUnits]) => (
-        <tr key={bloodType}>
-          <td>{bloodType}</td>
-          <td>{totalUnits}</td>
+    {donatedBlood && donatedBlood.length > 0 ? (
+        Object.entries(
+          donatedBlood.reduce((acc, donation) => {
+            if (donation && donation.bloodType) { // Ensure donation is valid
+              acc[donation.bloodType] = (acc[donation.bloodType] || 0) + donation.units;
+            }
+            return acc;
+          }, {})
+        ).map(([bloodType, totalUnits]) => (
+          <tr key={bloodType}>
+            <td>{bloodType}</td>
+            <td>{totalUnits}</td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan="2">No donation data available.</td>
         </tr>
-      ))}
+      )}
     </tbody>
   </table>
 </div>
@@ -358,15 +449,23 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
       </tr>
     </thead>
     <tbody>
-      {donatedBlood.map((donation) => (
-        <tr key={donation._id}>
-          <td>{donation.recipientName}</td>
-          <td>{donation.bloodType}</td>
-          <td>{new Date(donation.date).toLocaleDateString()}</td>
-          <td>{donation.units}</td>
+  {Array.isArray(donatedBlood) && donatedBlood.length > 0 ? (
+    donatedBlood
+      .filter((donation) => donation && donation.recipientName) // Ensure it's valid
+      .map((donation, index) => (
+        <tr key={index}>
+          <td>{donation.recipientName || "Unknown"}</td>
+          <td>{donation.bloodType || "Unknown"}</td>
+          <td>{donation.date ? new Date(donation.date).toLocaleDateString("en-US") : "Unknown"}</td>
+          <td>{donation.units || 0}</td>
         </tr>
-      ))}
-    </tbody>
+      ))
+  ) : (
+    <tr>
+      <td colSpan="3">No donation data available.</td>
+    </tr>
+  )}
+</tbody>
   </table>
 </div>
   </section>
@@ -381,23 +480,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     {/* Form for Adding New Received Blood Entry */}
     <div className="donation-form glass-card">
       <h3>Add New Received Blood Entry</h3>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const newReceivedBlood = {
-            id: Date.now(), // Temporary unique ID
-            receivedFrom,
-            bloodType: receivedBloodType,
-            date: receivedDate,
-            units: Number(receivedUnits),
-          };
-          setReceivedBlood([...receivedBlood, newReceivedBlood]); // Update state
-          setReceivedFrom(""); // Reset fields
-          setReceivedBloodType("");
-          setReceivedDate("");
-          setReceivedUnits("");
-        }}
-      >
+      <form onSubmit={handleSubmitReceived}>
         <label>Received From:</label>
         <input
           type="text"
@@ -437,28 +520,28 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           <tr>
             <th>Blood Type</th>
             <th>Total Units Received</th>
-            <th>Last Received Date</th>
           </tr>
         </thead>
         <tbody>
-          {Object.entries(
-            receivedBlood.reduce((acc, received) => {
-              if (!acc[received.bloodType]) {
-                acc[received.bloodType] = { totalUnits: 0, lastDate: received.date };
-              }
-              acc[received.bloodType].totalUnits += received.units;
-              if (new Date(received.date) > new Date(acc[received.bloodType].lastDate)) {
-                acc[received.bloodType].lastDate = received.date;
-              }
-              return acc;
-            }, {})
-          ).map(([bloodType, data]) => (
-            <tr key={bloodType}>
-              <td>{bloodType}</td>
-              <td>{data.totalUnits}</td>
-              <td>{data.lastDate}</td>
+          {receivedBlood && receivedBlood.length > 0 ? (
+            Object.entries(
+              (receivedBlood || []).reduce((acc, received) => {
+                if (received && received.bloodType) {
+                  acc[received.bloodType] = (acc[received.bloodType] || 0) + received.units;
+                }
+                return acc;
+              }, {})
+            ).map(([bloodType, totalUnits]) => (
+              <tr key={bloodType}>
+                <td>{bloodType}</td>
+                <td>{totalUnits}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2">No received blood data available.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
@@ -476,19 +559,28 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           </tr>
         </thead>
         <tbody>
-          {receivedBlood.map((received) => (
-            <tr key={received.id}>
-              <td>{received.receivedFrom}</td>
-              <td>{received.bloodType}</td>
-              <td>{received.date}</td>
-              <td>{received.units}</td>
+          {Array.isArray(receivedBlood) && receivedBlood.length > 0 ? (
+            receivedBlood
+              .filter((received) => received && received.receivedFrom)
+              .map((received, index) => (
+                <tr key={index}>
+                  <td>{received.receivedFrom || "Unknown"}</td>
+                  <td>{received.bloodType || "Unknown"}</td>
+                  <td>{received.date ? new Date(received.date).toLocaleDateString("en-US") : "Unknown"}</td>
+                  <td>{received.units || 0}</td>
+                </tr>
+              ))
+          ) : (
+            <tr>
+              <td colSpan="4">No received blood data available.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
   </section>
-)}
+)
+}
 
 
         {currentTab === "notifications" && (
