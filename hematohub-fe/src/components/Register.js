@@ -133,7 +133,7 @@ const Register = () => {
         if (response.ok) {
           alert(data.message);
           alert("Please login");
-          navigate(`/login`);
+          navigate(`/`);
         } else {
           alert(data.error || "Registration failed. Try again.");
         }

@@ -137,17 +137,24 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     if (!hospitalData || !hospitalData._id) return;
   
     try {
-      const res = await fetch(`http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`);
-      const data = await res.json();
+      const response = await fetch(
+        `http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`
+      );
   
-      console.log(data);
-      setReceivedBlood(Array.isArray(data) ? data : []);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log("Fetched Received Blood Data:", data); // Debugging
+  
+      setReceivedBlood(Array.isArray(data.receivedBloodEntries) ? data.receivedBloodEntries : []);
     } catch (error) {
       console.error("Error fetching received blood data:", error);
       setReceivedBlood([]);
-
     }
   };
+  
   
   
 
@@ -222,7 +229,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   
 
 
-  const handleSubmitReceived = async (e) => {
+  const handleReceivedSubmit = async (e) => {
     e.preventDefault();
   
     if (!hospitalData || !hospitalData._id) {
@@ -232,14 +239,13 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   
     const newReceivedBlood = {
       receivedFrom,
-      bloodType: receivedBloodType,
+      bloodType : receivedBloodType,
       receivedDate,
       units: Number(receivedUnits),
-      hospitalId: hospitalData._id, // Ensure hospital ID is used correctly
+      hospitalId: hospitalData._id,
     };
-
-    console.log(receivedFrom,receivedBloodType,receivedDate,receivedUnits,hospitalData);
   
+    console.log(receivedFrom,bloodType,receivedDate,units,hospitalData);
     try {
       const response = await fetch("http://localhost:5000/api/recipients/receive", {
         method: "POST",
@@ -249,10 +255,9 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   
       const data = await response.json();
       if (response.ok) {
-        alert("Blood received entry successfully added");
-        console.log("Blood received entry successfully added");
-        setReceivedBlood((prev) => [...prev, data.received]); // Update state properly
-        console.log("Newly Received Blood Entry:", data);
+        alert("Received blood successfully added");
+        console.log("Received blood successfully added");
+        setReceivedBlood((prev) => [...prev, data.receivedBlood]); // Update state
         fetchReceivedBlood();
         setReceivedFrom("");
         setReceivedBloodType("");
@@ -268,32 +273,9 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   
 
   useEffect(() => {
-    const fetchReceivedBlood = async () => {
-      if (!hospitalData || !hospitalData._id) return; // Prevent API call if hospitalData is missing
-  
-      try {
-        const response = await fetch(
-          `http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`
-        );
-        const data = await response.json();
-  
-        console.log("Fetched Received Blood Data:", data); // Debugging step
-  
-        if (Array.isArray(data)) {
-          setReceivedBlood(data);
-        } else {
-          setReceivedBlood([]); // Ensure it's always an array
-        }
-      } catch (error) {
-        console.error("Error fetching received blood data:", error);
-        setReceivedBlood([]);
-      }
-    };
-  
     fetchReceivedBlood();
   }, [hospitalData]);
   
-
 
 
   return (
@@ -320,11 +302,11 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           <button className="sidebar-btn" onClick={() => setCurrentTab("donationHistory")}>
             <MdHistory className="icon-purple" /> Donation History
           </button>
-          <button className="sidebar-btn" onClick={() => setCurrentTab("donatedBlood")}>
-            <MdDone className="icon-green" /> Donated Blood
-          </button>
           <button className="sidebar-btn" onClick={() => setCurrentTab("receivedBlood")}>
-            <MdMoveToInbox className="icon-blue" /> Received Blood
+            <MdMoveToInbox className="icon-blue" /> Donor Information
+          </button>
+          <button className="sidebar-btn" onClick={() => setCurrentTab("donatedBlood")}>
+            <MdDone className="icon-green" /> Recipient Information
           </button>
           {/*<button className="sidebar-btn" onClick={() => setCurrentTab("notifications")}>
             <MdNotifications className="icon-blue" /> Notifications
@@ -363,11 +345,11 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
 {currentTab === "donatedBlood" && (
   <section className="donated-blood glass-card">
-    <h2>Donated Blood</h2>
+    <h2>Issued Blood</h2>
 
     {/* Form for Adding New Donation */}
     <div className="donation-form glass-card">
-      <h3>Add New Donation</h3>
+      <h3>Add Issued Blood Entry</h3>
       <form
         onSubmit={handleSubmit}
       >
@@ -404,7 +386,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
     {/* Summary Table */}
     <div className="summary-table glass-card">
-  <h3>Donation Summary</h3>
+  <h3>Issued Blood Summary</h3>
   <table>
     <thead>
       <tr>
@@ -438,13 +420,13 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
     {/* Detailed Donation History */}
     <div className="table-container">
-  <h3>Donation Details</h3>
+  <h3>Recipient Details</h3>
   <table>
     <thead>
       <tr>
         <th>Recipient Name</th>
         <th>Blood Type</th>
-        <th>Date</th>
+        <th>Issued Date</th>
         <th>Units</th>
       </tr>
     </thead>
@@ -477,11 +459,11 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   <section className="received-blood glass-card">
     <h2>Received Blood</h2>
 
-    {/* Form for Adding New Received Blood Entry */}
+    {/* Form for Adding Received Blood */}
     <div className="donation-form glass-card">
-      <h3>Add New Received Blood Entry</h3>
-      <form onSubmit={handleSubmitReceived}>
-        <label>Received From:</label>
+      <h3>Add Received Blood Entry</h3>
+      <form onSubmit={handleReceivedSubmit}>
+        <label>Donor Name:</label>
         <input
           type="text"
           value={receivedFrom}
@@ -502,7 +484,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           <option value="AB-">AB-</option>
         </select>
 
-        <label>Date:</label>
+        <label>Received Date:</label>
         <input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} required />
 
         <label>Units:</label>
@@ -514,7 +496,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
     {/* Summary Table */}
     <div className="summary-table glass-card">
-      <h3>Blood Received Summary</h3>
+      <h3>Received Blood Summary</h3>
       <table>
         <thead>
           <tr>
@@ -525,9 +507,9 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
         <tbody>
           {receivedBlood && receivedBlood.length > 0 ? (
             Object.entries(
-              (receivedBlood || []).reduce((acc, received) => {
-                if (received && received.bloodType) {
-                  acc[received.bloodType] = (acc[received.bloodType] || 0) + received.units;
+              receivedBlood.reduce((acc, entry) => {
+                if (entry && entry.bloodType) { // Ensure entry is valid
+                  acc[entry.bloodType] = (acc[entry.bloodType] || 0) + entry.units;
                 }
                 return acc;
               }, {})
@@ -546,13 +528,13 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
       </table>
     </div>
 
-    {/* Detailed Table */}
+    {/* Detailed Received Blood History */}
     <div className="table-container">
-      <h3>Detailed Blood Received History</h3>
+      <h3>Donor Details</h3>
       <table>
         <thead>
           <tr>
-            <th>Received From</th>
+            <th>Donor Name</th>
             <th>Blood Type</th>
             <th>Date</th>
             <th>Units</th>
@@ -561,26 +543,26 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
         <tbody>
           {Array.isArray(receivedBlood) && receivedBlood.length > 0 ? (
             receivedBlood
-              .filter((received) => received && received.receivedFrom)
-              .map((received, index) => (
+              .filter((entry) => entry && entry.receivedFrom) // Ensure it's valid
+              .map((entry, index) => (
                 <tr key={index}>
-                  <td>{received.receivedFrom || "Unknown"}</td>
-                  <td>{received.bloodType || "Unknown"}</td>
-                  <td>{received.date ? new Date(received.date).toLocaleDateString("en-US") : "Unknown"}</td>
-                  <td>{received.units || 0}</td>
+                  <td>{entry.receivedFrom || "Unknown"}</td>
+                  <td>{entry.bloodType || "Unknown"}</td>
+                  <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-US") : "Unknown"}</td>
+                  <td>{entry.units || 0}</td>
                 </tr>
               ))
           ) : (
             <tr>
-              <td colSpan="4">No received blood data available.</td>
+              <td colSpan="3">No received blood data available.</td>
             </tr>
           )}
         </tbody>
       </table>
     </div>
   </section>
-)
-}
+)}
+
 
 
         {currentTab === "notifications" && (
@@ -598,22 +580,44 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
 {currentTab === "hospitalInfo" && (
   <section className="hospital-info glass-card">
-    <h2>Hospital Information</h2>
-    <p><strong>Name:</strong> {hospitalData?.hospitalName || "Not Available"}</p>
-    <p><strong>Registration Number:</strong> {hospitalData?.registrationNumber || "Not Available"}</p>
-    <p><strong>Type:</strong> {hospitalData?.hospitalType || "Not Available"}</p>
-    <p><strong>Phone:</strong> {hospitalData?.phoneNumber || "Not Available"}</p>
-    <p><strong>Alternate Phone:</strong> {hospitalData?.alternatePhone || "Not Available"}</p>
-    <p><strong>Email:</strong> {hospitalData?.email || "Not Available"}</p>
-    <p><strong>Address:</strong> {hospitalData?.address || "Not Available"}</p>
-    <p><strong>City:</strong> {hospitalData?.city || "Not Available"}</p>
-    <p><strong>State:</strong> {hospitalData?.state || "Not Available"}</p>
-    <p><strong>ZIP Code:</strong> {hospitalData?.zip || "Not Available"}</p>
-    <p><strong>Country:</strong> {hospitalData?.country || "Not Available"}</p>
-    <p><strong>License Number:</strong> {hospitalData?.licenseNumber || "Not Available"}</p>
+    <h2 className="section-title">Hospital Information</h2>
     
+    <div className="info-grid">
+      {/* General Information */}
+      <div className="info-group">
+        <h3>General Details</h3>
+        <p><strong>Name:</strong> {hospitalData?.hospitalName || "Not Available"}</p>
+        <p><strong>Registration No:</strong> {hospitalData?.registrationNumber || "Not Available"}</p>
+        <p><strong>Type:</strong> {hospitalData?.hospitalType || "Not Available"}</p>
+      </div>
+
+      {/* Contact Information */}
+      <div className="info-group">
+        <h3>Contact Information</h3>
+        <p><strong>Phone:</strong> {hospitalData?.phoneNumber || "Not Available"}</p>
+        <p><strong>Alternate Phone:</strong> {hospitalData?.alternatePhone || "Not Available"}</p>
+        <p><strong>Email:</strong> {hospitalData?.email || "Not Available"}</p>
+      </div>
+
+      {/* Location Details */}
+      <div className="info-group">
+        <h3>Location</h3>
+        <p><strong>Address:</strong> {hospitalData?.address || "Not Available"}</p>
+        <p><strong>City:</strong> {hospitalData?.city || "Not Available"}</p>
+        <p><strong>State:</strong> {hospitalData?.state || "Not Available"}</p>
+        <p><strong>ZIP Code:</strong> {hospitalData?.zip || "Not Available"}</p>
+        <p><strong>Country:</strong> {hospitalData?.country || "Not Available"}</p>
+      </div>
+
+      {/* Licensing Information */}
+      <div className="info-group">
+        <h3>Licensing</h3>
+        <p><strong>License Number:</strong> {hospitalData?.licenseNumber || "Not Available"}</p>
+      </div>
+    </div>
   </section>
 )}
+
 
 
 {currentTab === "bloodRequests" && (
