@@ -12,7 +12,7 @@ const DonorDashboard = () => {
 
   const [height, setHeight] = useState(null);
   const [weight, setWeight] = useState(null);
-  const [disease, setDisease] = useState(null);
+  const [hasDisease, setDisease] = useState(null);
   const [medications, setMedications] = useState(null);
   const [eligibility, setEligibility] = useState("Checking...");
 
@@ -55,19 +55,21 @@ const DonorDashboard = () => {
     const age = calculateAge(donorData?.dob);
     const nextDonationDate = calculateNextDonationDate(donorData?.lastDonation);
     const currentDate = new Date().toISOString().split("T")[0];
+    setDisease(donorData?.hasDisease);  // Ensure this is set properly
+    setMedications(donorData?.medications); // Ensure this is set properly
   
     if (age < 18 || age > 65) {
       setEligibility("❌ No, you are not eligible (Age must be 18-65)");
     } else if (bmi && (bmi < 18.5 || bmi > 30)) {
       setEligibility("❌ No, you are not eligible (Unhealthy BMI)");
-    } else if (disease === "Yes" || medications === "Yes") {
+    } else if (donorData?.hasDisease || donorData?.medications) { 
       setEligibility("❌ No, you are not eligible (Health condition)");
     } else if (new Date(currentDate) < new Date(nextDonationDate)) {
       setEligibility(`❌ No, you can donate after ${nextDonationDate}`);
     } else {
       setEligibility("✅ Yes, you are eligible!");
     }
-  }, [donorData, height, weight, disease, medications]);
+  }, [donorData, height, weight, hasDisease, medications]);
   
   
 

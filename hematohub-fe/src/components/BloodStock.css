@@ -1,0 +1,138 @@
+
+  /* Main Container */
+  .blood-stock-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .blood-stock-container:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Header */
+  .blood-stock-container h2 {
+    text-align: center;
+    color: #d32f2f;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+  }
+  
+  /* Search Box */
+  .search-box {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+  
+  .search-box select {
+    width: 65%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #d32f2f;
+    border-radius: 8px;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border 0.3s ease-in-out;
+  }
+  
+  .search-box select:focus {
+    border: 2px solid #b71c1c;
+  }
+  
+  .search-box button {
+    padding: 12px 18px;
+    border: none;
+    background: #d32f2f;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .search-box button:hover {
+    background: #b71c1c;
+  }
+  
+  /* Hospital Details */
+  .hospital-details {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hospital-details h3 {
+    color: #d32f2f;
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  
+  .hospital-details p {
+    font-size: 16px;
+    color: #444;
+    line-height: 1.6;
+  }
+  
+  /* Blood Stock Table */
+  .blood-stock-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .blood-stock-container th, 
+  .blood-stock-container td {
+    padding: 14px;
+    text-align: center;
+    font-size: 16px;
+  }
+  
+  .blood-stock-container th {
+    background: #d32f2f;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  
+  .blood-stock-container td {
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .blood-stock-container tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .blood-stock-container {
+      padding: 25px;
+    }
+  
+    .search-box {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
+    .search-box select,
+    .search-box button {
+      width: 100%;
+    }
+  }
+  

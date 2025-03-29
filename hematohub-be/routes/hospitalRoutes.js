@@ -4,7 +4,7 @@ import { loginHospital } from "../controllers/hospitalController.js";
 import {authenticateHospital} from "../middleware/auth.js";
 import { getHospitalDashboard } from "../controllers/hospitalController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-
+import Hospital from "../models/hospital.js";
 
 const router = express.Router();
 
@@ -128,6 +128,43 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   });
-  
+
+
+
+
+
+router.get("/", async (req, res) => {
+  try {
+    const hospitals = await Hospital.find({}, "hospitalName"); // Fetch only hospital names
+    res.json(hospitals);
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching hospitals" });
+  }
+});
+
+// ✅ Fetch Specific Hospital's Blood Stock
+router.get("/:hospitalName", async (req, res) => {
+  try {
+    const hospital = await Hospital.findOne({ hospitalName: req.params.hospitalName });
+
+    if (!hospital) {
+      return res.status(404).json({ message: "Hospital not found" });
+    }
+
+    res.json({
+      hospitalName: hospital.hospitalName,
+      registrationNumber: hospital.registrationNumber,
+      address: hospital.address,
+      city: hospital.city,
+      state: hospital.state,
+      phoneNumber: hospital.phoneNumber,
+      email: hospital.email,
+      bloodStock: hospital.bloodStock,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching hospital data" });
+  }
+});
+
 
 export default router;

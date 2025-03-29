@@ -15,6 +15,7 @@ import EditDonorProfile from "./components/EditDonorProfile";
 import TermsAndConditions from "./components/TermsAndConditions";
 import DonorHistory from "./components/DonorHistory";
 import AdminDashboard from "./components/AdminDashboard";
+import BloodStock from "./components/BloodStock.js";
 import "./App.css";  
 
 const App = () => {
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/donor/donation-history" element={<DonorHistory />} />
+          <Route path="/blood-stock" element={<BloodStock />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
