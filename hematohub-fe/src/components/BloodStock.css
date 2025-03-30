@@ -27,9 +27,11 @@
   /* Search Box */
   .search-box {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     gap: 12px;
     margin-bottom: 25px;
+    align-items: center;
   }
   
   .search-box select {
