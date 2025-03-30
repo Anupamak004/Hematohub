@@ -65,6 +65,10 @@ button.sidebar-toggle{
 }
 
 
+div.sidebar-content{
+  width: 100%;
+}
+
 .summary-table {
   margin-bottom: 20px;
   text-align: center;

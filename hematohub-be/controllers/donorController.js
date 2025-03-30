@@ -13,7 +13,7 @@ async function sendEmail(recipient, subject, content) {
     const response = await axios.post(
       'https://api.brevo.com/v3/smtp/email',
       {
-        sender: { email: process.env.BREVO_EMAIL.trim(), name: 'Blood Bank System' },
+        sender: { email: process.env.BREVO_EMAIL.trim(), name: 'Hematohub - Blood Bank System' },
         to: [{ email: recipient }],
         subject,
         htmlContent: content
@@ -41,37 +41,83 @@ async function sendEmail(recipient, subject, content) {
   }
 }
 
+
+export const calculateEligibility = (donor) => {
+  const age = getAge(donor.dob);
+  const bmi = donor.height && donor.weight ? donor.weight / ((donor.height / 100) ** 2) : null;
+  const currentDate = new Date();
+  let nextDonationDate = null;
+
+  if (donor.lastDonation) {
+      nextDonationDate = new Date(donor.lastDonation);
+      nextDonationDate.setMonth(nextDonationDate.getMonth() + 3);
+  }
+
+  if (age < 18 || age > 65) return false;
+  if (bmi && (bmi < 18.5 || bmi > 30)) return false;
+  if (donor.hasDisease || donor.medications) return false;
+  if (nextDonationDate && currentDate < nextDonationDate) return false;
+   
+  return true;
+};
+
+const getAge = (dob) => {
+  const birthDate = new Date(dob);
+  const diff = new Date() - birthDate;
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+};
+
 export const registerDonor = async (req, res) => {
   try {
     const { name, dob, gender, address, weight, height, bloodType, aadhar, mobile, email, password } = req.body;
 
+    
     let donorExists = await Donor.findOne({ email });
     if (donorExists) return res.status(400).json({ error: "Donor already exists" });
+    
 
     const newDonor = await Donor.create(req.body);
+    newDonor.eligibility = calculateEligibility(newDonor);
+    await newDonor.save(); // Save updated eligibility status
 
-    const loginUrl = "https://bloodbank-system.com/donor/login";
+    const loginUrl = "http://localhost:3000/";
     try {
       await sendEmail(
         email,
         "Donor Registration Successful",
         `<!DOCTYPE html>
         <html>
-        <head><title>Registration Successful</title></head>
-        <body>
-          <div style="text-align:center; padding:20px; font-family:Arial,sans-serif;">
-            <h2 style="color:#28a745;">✔ Registration Successful!</h2>
-            <p>Thank you for registering as a donor,  Your account has been successfully created.</p>
-            <p>As a blood donor, you have the power to save lives. Thank you for your commitment to helping others.</p>
-            <div style="margin: 20px 0;">
-              <p>Your Details:</p>
-              <p>Name: <strong>${name}</strong></p>
-              <p>Blood Type: <strong>${bloodType}</strong></p>
-            </div>
-            <a href="${loginUrl}" style="background-color:#2D89FF; color:white; padding:10px 20px; border-radius:5px; text-decoration:none; display:inline-block;">Login Now</a>
-            <p style="color:#777; font-size:12px; margin-top:20px;">© 2025 Blood Bank System. All rights reserved.</p>
-          </div>
-        </body>
+        <head>
+    <title>Welcome to HematoHub - Registration Successful</title>
+</head>
+<body>
+    <div style="text-align:center; padding:20px; font-family:Arial, sans-serif;">
+        <h2 style="color:#28a745;">✔ Welcome to HematoHub!</h2>
+        <p>Dear <strong>${name}</strong>,</p>
+        <p>Thank you for registering as a blood donor with <strong>HematoHub</strong>. Your commitment to saving lives is truly commendable.</p>
+
+        <p>By joining HematoHub, you are now part of a lifesaving network that ensures blood is available to those in urgent need.</p>
+
+        <div style="margin: 20px 0; padding: 10px; background-color:#f9f9f9; border-radius: 5px;">
+            <h3>Your Donor Details</h3>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Blood Type:</strong> ${bloodType}</p>
+            <p><strong>Eligibility Status:</strong> ${newDonor.eligibility ? "✅ Eligible for Donation" : "❌ Currently Not Eligible"}</p>
+        </div>
+
+        <p>You can log in to your donor dashboard to manage your profile, track donation history, and receive urgent blood requests.</p>
+
+        <a href="${loginUrl}" style="background-color:#2D89FF; color:white; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold; display:inline-block; margin-top:15px;">
+            Access Your Donor Dashboard
+        </a>
+
+        <p style="color:#777; font-size:12px; margin-top:20px;">
+            Thank you for being a hero. Your generosity saves lives! ❤️  
+        </p>
+
+        <p style="color:#999; font-size:11px;">© 2025 HematoHub Blood Bank Management System. All rights reserved.</p>
+    </div>
+</body>
         </html>`
       );
     } catch (emailError) {
@@ -132,30 +178,7 @@ const getDonorDetails = asyncHandler(async (req, res) => {
   res.json(donor);
 });
 
-export const calculateEligibility = (donor) => {
-  const age = getAge(donor.dob);
-  const bmi = donor.height && donor.weight ? donor.weight / ((donor.height / 100) ** 2) : null;
-  const currentDate = new Date();
-  let nextDonationDate = null;
 
-  if (donor.lastDonation) {
-      nextDonationDate = new Date(donor.lastDonation);
-      nextDonationDate.setMonth(nextDonationDate.getMonth() + 3);
-  }
-
-  if (age < 18 || age > 65) return false;
-  if (bmi && (bmi < 18.5 || bmi > 30)) return false;
-  if (donor.hasDisease || donor.medications) return false;
-  if (nextDonationDate && currentDate < nextDonationDate) return false;
-
-  return true;
-};
-
-const getAge = (dob) => {
-  const birthDate = new Date(dob);
-  const diff = new Date() - birthDate;
-  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-};
 
 // @desc    Update donor details
 // @route   PUT /api/donors/:id

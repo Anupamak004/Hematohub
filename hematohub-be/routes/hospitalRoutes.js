@@ -5,12 +5,113 @@ import {authenticateHospital} from "../middleware/auth.js";
 import { getHospitalDashboard } from "../controllers/hospitalController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import Hospital from "../models/hospital.js";
+import Donor from '../models/donor.js';
+import axios from 'axios';
+
 
 const router = express.Router();
 
 router.post("/register", registerHospital);
 router.post("/login", loginHospital); // Add login route
 router.get("/dashboard", authenticateHospital, getHospitalDashboard); // Protected route
+
+
+async function sendEmail(recipient, subject, content) {
+  const apiKey = process.env.BREVO_API_KEY.trim();
+  
+  try {
+      console.log(`Attempting to send email to: ${recipient}`);
+      
+      const response = await axios.post(
+          'https://api.brevo.com/v3/smtp/email',
+          {
+              sender: { email: process.env.BREVO_EMAIL.trim(), name: 'Blood Bank System' },
+              to: [{ email: recipient }],
+              subject,
+              htmlContent: content
+          },
+          {
+              headers: {
+                  'api-key': apiKey,
+                  'Content-Type': 'application/json'
+              }
+          }
+      );
+      console.log(`[EMAIL] Email sent to: ${recipient}`);
+      return response.data;
+  } catch (error) {
+      console.error('[EMAIL ERROR]', error.response?.data || error.message);
+      throw new Error('Failed to send email');
+  }
+}
+
+router.post('/blood-requests', async (req, res) => {
+  try {
+      const { hospitalId, bloodType, units } = req.body;
+
+      // Find the hospital making the request
+      const hospital = await Hospital.findById(hospitalId);
+      if (!hospital) {
+          console.log("'Hospital not found");
+          return res.status(404).json({ error: 'Hospital not found' });
+      }
+
+      // Determine donor query based on blood type
+      let donorQuery = { 
+          eligibility: true,
+          hasDisease:false, 
+          bloodType: bloodType === 'ALL' ? { $exists: true } : bloodType 
+      };
+
+      // Find eligible donors matching the blood type
+      const donors = await Donor.find(donorQuery);
+
+      if (donors.length === 0) {
+        console.log("'No donor not found");
+          return res.status(404).json({ 
+              message: 'No eligible donors found for the requested blood type' 
+          });
+      }
+
+      // Send emails to all matching donors
+      const emailPromises = donors.map(async (donor) => {
+          const emailSubject = 'Urgent Blood Request';
+          const emailContent = `
+              <html>
+                  <body>
+                      <h2>Urgent Blood Donation Request</h2>
+                      <p>Dear ${donor.name},</p>
+                      <p>An urgent blood request has been made for ${units} units of ${bloodType} blood type.</p>
+                      <p>Hospital: ${hospital.hospitalName}</p>
+                      <p>Location: ${hospital.address}, ${hospital.city}, ${hospital.state}</p>
+                      <p>Please contact the hospital if you can help.</p>
+                      <p>Thank you for your potential life-saving contribution!</p>
+                  </body>
+              </html>
+          `;
+
+          try {
+              await sendEmail(donor.email, emailSubject, emailContent);
+          } catch (emailError) {
+              console.error("Failed to send email to ${donor.email}", emailError);
+          }
+      });
+
+      // Wait for all emails to be processed
+      await Promise.all(emailPromises);
+
+      res.status(200).json({ 
+          message: `Blood request sent to ${donors.length} potential donors`,
+          donorsNotified: donors.length
+      });
+
+  } catch (error) {
+      console.error('Blood Request Error:', error);
+      res.status(500).json({ error: 'Internal server error processing blood request' });
+  }
+});
+
+
 
 
 router.get("/dashboard", authMiddleware, async (req, res) => {

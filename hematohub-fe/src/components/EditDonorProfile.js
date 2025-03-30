@@ -6,19 +6,22 @@ const EditDonorDashboard = () => {
   const storedDonorId = localStorage.getItem("donorId");
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  console.log(storedDonorId);
-  console.log(token);
-  console.log(localStorage.getItem("donorId"));
-
 
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
-    mobile: "",
+    dob: "",
+    gender: "",
     address: "",
     weight: "",
     height: "",
-    lastDonation: "",
+    bloodType: "",
+    hasDisease: null,
+    disease: "",
+    aadhar: "",
+    mobile: "",
+    takesMedication: null, // Changed to boolean
+    emergency: false,
     email: "",
   });
 
@@ -31,27 +34,32 @@ const EditDonorDashboard = () => {
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:5000/api/donors/${storedDonorId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`http://localhost:5000/api/donors/${storedDonorId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) throw new Error("Failed to fetch donor details");
 
         const donor = await response.json();
         setFormData({
           name: donor.name || "",
-          mobile: donor.mobile || "",
+          dob: donor.dob ? donor.dob.split("T")[0] : "",
+          gender: donor.gender || "",
           address: donor.address || "",
           weight: donor.weight || "",
           height: donor.height || "",
-          lastDonation: donor.lastDonation || "",
+          bloodType: donor.bloodType || "",
+          hasDisease: donor.hasDisease !== null ? donor.hasDisease : null,
+          disease: donor.disease || "",
+          aadhar: donor.aadhar || "",
+          mobile: donor.mobile || "",
+          takesMedication: donor.takesMedication !== null ? donor.takesMedication : null,
+          medicationDetails: donor.medicationDetails || "",
+          emergency: donor.emergency || false,
           email: donor.email || "",
         });
       } catch (error) {
@@ -66,23 +74,29 @@ const EditDonorDashboard = () => {
   }, [storedDonorId, token, navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.takesMedication === null) {
+      alert("Please select if you are taking any medications.");
+      return;
+    }
+
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/donors/${storedDonorId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/donors/${storedDonorId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
 
       if (!response.ok) throw new Error("Failed to update donor details");
 
@@ -98,27 +112,98 @@ const EditDonorDashboard = () => {
     <div className="edit-donor-dashboard">
       <h2>Edit Donor Profile</h2>
       <form onSubmit={handleSubmit}>
+        {/* Basic Fields */}
         {[
           { label: "Name", name: "name", type: "text" },
-          { label: "Phone", name: "mobile", type: "text" },
+          { label: "Date of Birth", name: "dob", type: "date" },
+          { label: "Gender", name: "gender", type: "text" },
           { label: "Address", name: "address", type: "text" },
-          { label: "Weight", name: "weight", type: "number" },
-          { label: "Height", name: "height", type: "number" },
-          { label: "Last donation", name: "lastDonation", type: "date" },
+          { label: "Weight (kg)", name: "weight", type: "number" },
+          { label: "Height (cm)", name: "height", type: "number" },
+          { label: "Blood Type", name: "bloodType", type: "text" },
+          { label: "Aadhar Number", name: "aadhar", type: "text" },
+          { label: "Mobile Number", name: "mobile", type: "text" },
           { label: "Email", name: "email", type: "email" },
         ].map(({ label, name, type }) => (
           <div className="input-group" key={name}>
             <label>{label}:</label>
-            <input
-              type={type}
-              name={name}
-              value={formData[name] || ""}
-              onChange={handleChange}
-              
-            />
+            <input type={type} name={name} value={formData[name] || ""} onChange={handleChange} />
           </div>
         ))}
 
+        {/* Do you have any disease? */}
+        <div className="input-group">
+          <label>Do you have any disease? <span className="required">*</span></label>
+          <div className="radio-group">
+            <label>
+              <input
+                type="radio"
+                name="hasDisease"
+                value="true"
+                checked={formData.hasDisease === true}
+                onChange={() => setFormData({ ...formData, hasDisease: true })}
+              />
+              Yes
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="hasDisease"
+                value="false"
+                checked={formData.hasDisease === false}
+                onChange={() => setFormData({ ...formData, hasDisease: false, disease: "" })}
+              />
+              No
+            </label>
+          </div>
+        </div>
+
+        {/* If has disease, show input */}
+        {formData.hasDisease === true && (
+          <div className="input-group">
+            <label>If yes, specify disease:</label>
+            <input type="text" name="disease" value={formData.disease} onChange={handleChange} />
+          </div>
+        )}
+
+        {/* Are you taking any medications? */}
+        <div className="input-group">
+          <label>Are you taking any medications? <span className="required">*</span></label>
+          <div className="radio-group">
+            <label>
+              <input
+                type="radio"
+                name="takesMedication"
+                value="true"
+                checked={formData.takesMedication === true}
+                onChange={() => setFormData({ ...formData, takesMedication: true })}
+                required
+              />
+              Yes
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="takesMedication"
+                value="false"
+                checked={formData.takesMedication === false}
+                onChange={() => setFormData({ ...formData, takesMedication: false, medicationDetails: "" })}
+                required
+              />
+              No
+            </label>
+          </div>
+        </div>
+
+        {/* If taking medication, show input */}
+        {formData.takesMedication === true && (
+          <div className="input-group">
+            <label>If yes, specify medication:</label>
+            <input type="text" name="medicationDetails" value={formData.medicationDetails} onChange={handleChange} />
+          </div>
+        )}
+
+        {/* Submit Button */}
         <div className="button-group">
           <button type="button" className="back-button" onClick={() => navigate("/donor-dashboard")}>
             Back

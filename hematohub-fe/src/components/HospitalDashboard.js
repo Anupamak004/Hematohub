@@ -81,7 +81,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     }
 
     try {
-      const response = await axios.post("/api/hospitals/request-blood", {
+      const response = await axios.post("http://localhost:5000/api/hospitals/blood-requests", {
         hospitalId: hospitalData._id,
         bloodType: urgentBloodType,
         units: urgentUnits,
@@ -89,7 +89,7 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
 
       setMessage(response.data.message || "Urgent blood request sent successfully.");
     } catch (error) {
-      setMessage(error.response?.data?.error || "Failed to send urgent blood request.");
+      setMessage(error.response?.data?.error || "No Donor to send urgent blood request.");
     }
   };
   
@@ -325,24 +325,78 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
         </header>
 
         {currentTab === "bloodStock" && (
-          <section className="blood-stock-section">
-            <h2>Blood Stock Overview</h2>
-            <div className="chart-container glass-card">
-              <Doughnut
-                data={{
-                  labels: hospitalData?.bloodStock ? Object.keys(hospitalData.bloodStock) : [],
-                  datasets: [
-                    {
-                      data: hospitalData?.bloodStock ? Object.values(hospitalData.bloodStock) : [],
-                      backgroundColor: ["#e63946", "#457b9d", "#f4a261", "#2a9d8f"],
-                    },
-                  ],
-                }}
-              />
-            </div>
-          </section>
-        )}
+  <section className="blood-stock-page">
+    {/* Header Section */}
+    <header className="blood-stock-header">
+      <h2>Blood Stock Overview</h2>
+    </header>
 
+    {/* Main Content */}
+    <div className="blood-stock-content">
+      {/* Blood Stock Summary Table */}
+      <div className="blood-summary glass-card">
+        <h3>Current Blood Stock</h3>
+        {hospitalData?.bloodStock && Object.keys(hospitalData.bloodStock).length > 0 ? (
+          <table className="blood-stock-table">
+            <thead>
+              <tr>
+                <th>Blood Type</th>
+                <th>Available Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(hospitalData.bloodStock).map(([bloodType, units]) => (
+                <tr key={bloodType}>
+                  <td>{bloodType}</td>
+                  <td>{units}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="no-data-message">No blood stock data available.</p>
+        )}
+      </div>
+
+      {/* Blood Stock Doughnut Chart */}
+      <div className="blood-chart glass-card">
+        <h3>Stock Distribution</h3>
+        {hospitalData?.bloodStock && Object.keys(hospitalData.bloodStock).length > 0 ? (
+          <div className="chart-wrapper">
+            <Doughnut
+              data={{
+                labels: Object.keys(hospitalData.bloodStock),
+                datasets: [
+                  {
+                    data: Object.values(hospitalData.bloodStock),
+                    backgroundColor: ["#e63946", "#457b9d", "#f4a261", "#2a9d8f", "#8d99ae", "#ffb703", "#6a0572", "#264653"],
+                    borderWidth: 1.5,
+                    hoverBorderColor: "#ffffff",
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      color: "#333",
+                      font: { size: 14, weight: "bold" },
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        ) : (
+          <p className="no-data-message">No stock data available for visualization.</p>
+        )}
+      </div>
+    </div>
+  </section>
+)}
      
         
 

@@ -23,9 +23,13 @@ const Register = () => {
   const [aadhar, setAadhar] = useState("");
   const [mobile, setMobile] = useState("");
   const [lastDonation, setLastDonation] = useState("");
-  const [medications, setMedications] = useState("");
+  const [medications, setMedications] = useState(null);
   const [emergency, setEmergency] = useState(false);
   const [errors, setErrors] = useState({});
+  const [hasDonated, setHasDonated] = useState(null);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [error, setError] = useState(""); // ✅ Error state
+
 
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
@@ -87,6 +91,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
 
 
+
     const validatePhone = (num) => /^[0-9]{10,15}$/.test(num);
     const validateZip = (zip) => /^[0-9]{4,10}$/.test(zip);
     const validateEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
@@ -95,29 +100,40 @@ const Register = () => {
 
     const handleRegister = async (e) => {
       e.preventDefault();
+      if (userType === "donor") {
+        if (hasDonated === null) {
+          setError("Please select an option."); // Show error if not selected
+          return;
+        } else {
+          setError(""); // Clear error when valid
+        }
     
-      if (!consent) {
-        alert("You must agree to the terms and conditions to register.");
-        return;
+        // Proceed with form submission
+        console.log("Form submitted:", { hasDonated, lastDonation });
+    
+        if (!consent) {
+          alert("You must agree to the terms and conditions to register.");
+          return;
+        }
+    
+        // Age validation (only for donors)
+        const today = new Date();
+        const birthDate = new Date(dob);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+    
+        if (age < 18 || age > 65) {
+          alert("Registration failed: Donors must be between 18 and 65 years old.");
+          return;
+        }
       }
-
-      // Age validation
-  const today = new Date();
-  const birthDate = new Date(dob);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--; 
-  }
-
-  if (age < 18 || age > 65) {
-    alert("Registration failed : Donors must be between 18 and 65 years old.");
-    return;
-  }
     
       const userData = userType === "donor" ? {
-        name, dob, gender, address, weight, height, bloodType, hasDisease, disease, aadhar, mobile, lastDonation, medications, emergency, email, password
+        name, dob, gender, address, weight, height, bloodType, hasDisease, disease, aadhar, mobile, hasDonated, lastDonation: hasDonated ? lastDonation : null, medications, emergency, email, password
       } : {
         hospitalName, registrationNumber, hospitalType, email, phoneNumber, alternatePhone, address, city, state, zip, country, latitude, longitude, password, bloodBankAvailable, licenseNumber, bloodStock, website, operatingHours
       };
@@ -159,7 +175,7 @@ const Register = () => {
         {userType === "donor" ? (
           <>
             <div className="input-box">
-        <label>Full Name *</label>
+        <label>Full Name <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input
           type="text"
           placeholder="Enter your full name"
@@ -170,12 +186,12 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Date of Birth *</label>
+        <label>Date of Birth <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
       </div>
 
       <div className="input-box">
-        <label>Gender *</label>
+        <label>Gender <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <select value={gender} onChange={(e) => setGender(e.target.value)} required>
           <option value="">Select Gender</option>
           <option value="Male">Male</option>
@@ -185,22 +201,22 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Address *</label>
+        <label>Address <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} required />
       </div>
 
       <div className="input-box">
-        <label>Weight (kg) *</label>
+        <label>Weight (kg) <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="number" placeholder="Enter your weight" value={weight} onChange={(e) => setWeight(e.target.value)} required />
       </div>
 
       <div className="input-box">
-        <label>Height (cm) *</label>
+        <label>Height (cm) <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="number" placeholder="Enter your height" value={height} onChange={(e) => setHeight(e.target.value)} required />
       </div>
 
       <div className="input-box">
-        <label>Blood Type *</label>
+        <label>Blood Type <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <select value={bloodType} onChange={(e) => setBloodType(e.target.value)} required>
           <option value="">Select Blood Type</option>
           {bloodTypes.map((type) => (
@@ -224,28 +240,99 @@ const Register = () => {
       )}
 
       <div className="input-box">
-        <label>Aadhar Number *</label>
+        <label>Aadhar Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Enter your Aadhar number" value={aadhar} onChange={(e) => setAadhar(e.target.value)} required />
         {errors.aadhar && <p>{errors.aadhar}</p>}
         {!validateAadhar(aadhar) && aadhar && <p className="error">Invalid aadhar number</p>}
       </div>
 
       <div className="input-box">
-        <label>Mobile Number *</label>
+        <label>Mobile Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="tel" placeholder="Enter your mobile number" value={mobile} onChange={(e) => setMobile(e.target.value)} required />
         {errors.mobile&& <p>{errors.mobile}</p>}
         {!validatePhone(mobile) && mobile && <p className="error">Invalid phone number</p>}
       </div>
 
-      <div className="input-box">
-        <label>Last Donation Date</label>
-        <input type="date" value={lastDonation} onChange={(e) => setLastDonation(e.target.value)} />
+      <div className="checkbox-container">
+        <label>
+          Have you donated blood before?
+          <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span>
+        </label>
+        <div className="radio-group">
+          <label>
+            <input
+              type="radio"
+              value="yes"
+              checked={hasDonated === true}
+              onChange={() => setHasDonated(true)}
+            />
+            Yes
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              value="no"
+              checked={hasDonated === false}
+              onChange={() => {
+                setHasDonated(false);
+                setLastDonation(""); // Reset lastDonation if "No" is selected
+              }}
+            />
+            No
+          </label>
+        </div>
+
+        {/* Show error if user didn't select any option */}
+        {error && <p style={{ color: "red", fontSize: "16px", marginTop: "5px" }}>{error}</p>}
       </div>
 
-      <div className="input-box">
-        <label>Medications</label>
-        <input type="text" placeholder="Enter any medications you're taking" value={medications} onChange={(e) => setMedications(e.target.value)} />
-      </div>
+      {hasDonated === true && (
+        <div className="input-box">
+          <label>
+            Last Donation Date
+            <span style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>*</span>
+          </label>
+          <input
+            type="date"
+            value={lastDonation}
+            onChange={(e) => setLastDonation(e.target.value)}
+            required
+          />
+        </div>
+      )}
+
+
+
+<div className="input-box">
+  <label>Are you taking any medications? <span style={{ color: "red", fontSize: "18px", fontWeight: "bold" }}>*</span></label>
+  <div className="radio-group">
+    <label>
+      <input 
+        type="radio" 
+        name="medications" 
+        value="yes" 
+        checked={medications === "yes"} 
+        onChange={() => setMedications("yes")} 
+        required 
+      /> 
+      Yes
+    </label>
+
+    <label>
+      <input 
+        type="radio" 
+        name="medications" 
+        value="no" 
+        checked={medications === "no"} 
+        onChange={() => setMedications("no")} 
+        required 
+      /> 
+      No
+    </label>
+  </div>
+</div>
+
 
       <div className="checkbox-container">
         <label>Available for Emergency Donation</label>
@@ -256,7 +343,7 @@ const Register = () => {
         ) : (
           <>
         <div className="input-box">
-        <label>Hospital Name *</label>
+        <label>Hospital Name <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Hospital Name" value={hospitalName} 
           onChange={(e) => setHospitalName(e.target.value)}
           required minLength={3} maxLength={100}
@@ -264,7 +351,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Registration Number *</label>
+        <label>Registration Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Registration Number" value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
           required pattern="^[a-zA-Z0-9-/]+$"
@@ -272,7 +359,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Hospital Type *</label>
+        <label>Hospital Type <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <select value={hospitalType} onChange={(e) => setHospitalType(e.target.value)} required>
           <option value="">Select Type</option>
           <option value="Government">Government</option>
@@ -282,7 +369,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Phone Number *</label>
+        <label>Phone Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="tel" placeholder="Phone Number" value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           required pattern="[0-9]{10,15}"
@@ -299,7 +386,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Address *</label>
+        <label>Address <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Address" value={address}
           onChange={(e) => setAddress(e.target.value)}
           required minLength={10} maxLength={255}
@@ -307,7 +394,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>City *</label>
+        <label>City <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="City" value={city}
           onChange={(e) => setCity(e.target.value)}
           required pattern="^[A-Za-z\s]{2,50}$"
@@ -315,7 +402,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>State *</label>
+        <label>State <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="State" value={state}
           onChange={(e) => setState(e.target.value)}
           required pattern="^[A-Za-z\s]{2,50}$"
@@ -323,7 +410,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>ZIP Code *</label>
+        <label>ZIP Code <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="ZIP Code" value={zip}
           onChange={(e) => setZip(e.target.value)}
           required pattern="[0-9]{4,10}"
@@ -332,24 +419,24 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Country *</label>
+        <label>Country <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Country" value={country}
           onChange={(e) => setCountry(e.target.value)}
           required pattern="^[A-Za-z\s]+$"
         />
       </div>
 
-      <label className="input-box-label">Blood Bank Details *</label>
+      <label className="input-box-label">Blood Bank Details <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
       <div className="blood-stock-box">
         <div className="input-box">
-          <label>Blood Bank License Number *</label>
+          <label>Blood Bank License Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
           <input type="text" placeholder="Blood Bank License Number" value={licenseNumber}
             onChange={(e) => setLicenseNumber(e.target.value)}
             required pattern="^[a-zA-Z0-9-]+$"
           />
         </div>
 
-        <label className="input-box-label">Current Blood Stock Levels</label>
+        <label className="input-box-label">Current Blood Stock Levels <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         {Object.keys(bloodStock).map((type) => (
           <div className="input-box1" key={type}>
             <input type="number" placeholder={`Initial Stock for ${type}`} value={bloodStock[type]}
@@ -365,7 +452,7 @@ const Register = () => {
           </>
         )}
         <div className="input-box">
-        <label>Email *</label>
+        <label>Email <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="email" placeholder="Email" value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -374,7 +461,7 @@ const Register = () => {
       </div>
 
       <div className="input-box">
-        <label>Password *</label>
+        <label>Password <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="password" placeholder="Password" value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
