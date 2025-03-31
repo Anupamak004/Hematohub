@@ -134,10 +134,15 @@ router.post("/donate", async (req, res) => {
 // 🩸 Route to Add Received Blood Entry
 router.post("/receive", async (req, res) => {
   try {
-    const { receivedFrom, bloodType, receivedDate, units, hospitalId } = req.body;
+    const { receivedFrom, bloodType, receivedDate, units, hospitalId, dob, aadhaarLast4 } = req.body;
 
-    if (!receivedFrom || !bloodType || !units || !receivedDate || !hospitalId) {
+    if (!receivedFrom || !bloodType || !units || !receivedDate || !hospitalId || !dob || !aadhaarLast4) {
       return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Validate Aadhaar (only last 4 digits)
+    if (!/^\d{4}$/.test(aadhaarLast4)) {
+      return res.status(400).json({ error: "Aadhaar number must be exactly 4 digits" });
     }
 
     const hospital = await Hospital.findById(hospitalId);
@@ -151,6 +156,8 @@ router.post("/receive", async (req, res) => {
       bloodType,
       units,
       receivedDate: new Date(receivedDate).toISOString(),
+      dob: new Date(dob).toISOString(), // Ensure valid date format
+      aadhaarLast4, // Only store last 4 digits
       hospitalId
     });
 
@@ -168,6 +175,7 @@ router.post("/receive", async (req, res) => {
 });
 
 
+
 // 🩸 Route to Fetch Received Blood Entries for a Hospital
 router.get("/received-blood/:hospitalId", async (req, res) => {
   try {
@@ -178,11 +186,23 @@ router.get("/received-blood/:hospitalId", async (req, res) => {
       return res.status(404).json({ message: "No received blood records found" });
     }
 
-    res.status(200).json({ receivedBloodEntries });
+    // Ensure response contains dob and Aadhaar (masked)
+    const formattedEntries = receivedBloodEntries.map(entry => ({
+      _id: entry._id,
+      receivedFrom: entry.receivedFrom,
+      bloodType: entry.bloodType,
+      receivedDate: entry.receivedDate,
+      units: entry.units,
+      dob: entry.dob ? new Date(entry.dob).toISOString().split("T")[0] : "Unknown",
+      aadhaarLast4: entry.aadhaarLast4 || "XXXX" // Masked Aadhaar
+    }));
+
+    res.status(200).json({ receivedBloodEntries: formattedEntries });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 export default router;

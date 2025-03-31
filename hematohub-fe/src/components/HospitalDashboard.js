@@ -32,7 +32,9 @@ const [receivedUnits, setReceivedUnits] = useState("");
 const [urgentBloodType, setUrgentBloodType] = useState("");
   const [urgentUnits, setUrgentUnits] = useState("");
   const [message, setMessage] = useState("");
-  
+  const [dob, setDob] = useState("");
+const [aadhaarLast4, setAadhaarLast4] = useState("");
+
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] || [];
 
@@ -239,10 +241,12 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   
     const newReceivedBlood = {
       receivedFrom,
-      bloodType : receivedBloodType,
-      receivedDate,
-      units: Number(receivedUnits),
-      hospitalId: hospitalData._id,
+  bloodType: receivedBloodType,
+  receivedDate,
+  units: Number(receivedUnits),
+  dob, // New field
+  aadhaarLast4, // New field
+  hospitalId: hospitalData._id,
     };
   
     console.log(receivedFrom,bloodType,receivedDate,units,hospitalData);
@@ -263,6 +267,8 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
         setReceivedBloodType("");
         setReceivedDate("");
         setReceivedUnits("");
+        setAadhaarLast4("");
+        setDob("");
       } else {
         alert(data.error);
       }
@@ -542,7 +548,23 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
           <option value="AB-">AB-</option>
         </select>
 
-        <label>Received Date:</label>
+        <label>Date of Birth:</label>
+<input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
+
+<label>Aadhaar (Last 4 Digits):</label>
+<input
+  type="text"
+  value={aadhaarLast4}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, ""); // Allow only digits
+    if (value.length <= 4) setAadhaarLast4(value);
+  }}
+  maxLength="4"
+  required
+/>
+
+
+        <label>Donated Date:</label>
         <input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} required />
 
         <label>Units:</label>
@@ -590,32 +612,29 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
     <div className="table-container">
       <h3>Donor Details</h3>
       <table>
-        <thead>
-          <tr>
-            <th>Donor Name</th>
-            <th>Blood Type</th>
-            <th>Date</th>
-            <th>Units</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.isArray(receivedBlood) && receivedBlood.length > 0 ? (
-            receivedBlood
-              .filter((entry) => entry && entry.receivedFrom) // Ensure it's valid
-              .map((entry, index) => (
-                <tr key={index}>
-                  <td>{entry.receivedFrom || "Unknown"}</td>
-                  <td>{entry.bloodType || "Unknown"}</td>
-                  <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-US") : "Unknown"}</td>
-                  <td>{entry.units || 0}</td>
-                </tr>
-              ))
-          ) : (
-            <tr>
-              <td colSpan="3">No received blood data available.</td>
-            </tr>
-          )}
-        </tbody>
+      <thead>
+  <tr>
+    <th>Donor Name</th>
+    <th>Blood Type</th>
+    <th>Date</th>
+    <th>Units</th>
+    <th>DOB</th>
+    <th>Aadhaar (Last 4)</th>
+  </tr>
+</thead>
+<tbody>
+  {receivedBlood.map((entry, index) => (
+    <tr key={index}>
+      <td>{entry.receivedFrom || "Unknown"}</td>
+      <td>{entry.bloodType || "Unknown"}</td>
+      <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-US") : "Unknown"}</td>
+      <td>{entry.units || 0}</td>
+      <td>{entry.dob ? new Date(entry.dob).toLocaleDateString("en-US") : "Unknown"}</td>
+      <td>**** **** **** {entry.aadhaarLast4 || "XXXX"}</td>
+    </tr>
+  ))}
+</tbody>
+
       </table>
     </div>
   </section>
