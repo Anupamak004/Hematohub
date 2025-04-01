@@ -24,7 +24,7 @@ const hospitalSchema = new mongoose.Schema({
   receivedBlood: { type: Array, default: [] },
   bloodThreshold: {
     type: Object,
-    default: { "A+": 5, "A-": 5, "B+": 5, "B-": 5, "AB+": 5, "AB-": 5, "O+": 5, "O-": 5 },
+    default: { "A+": 50, "A-": 50, "B+": 50, "B-": 50, "AB+": 50, "AB-": 50, "O+": 50, "O-": 50 },
   }, 
 });
 

@@ -86,15 +86,45 @@ router.post("/donate", async (req, res) => {
           if (donors.length > 0) {
             const emailPromises = donors.map((donor) =>
               sendEmail(
-                donor.email,
-                `Urgent Blood Requirement - ${bloodType}`,
-                `<p>Dear ${donor.name},</p>
-                 <p>${hospital.hospitalName}, a ${hospital.hospitalType} hospital located at ${hospital.address}, is urgently running low on ${bloodType} blood.</p>
-                 <p>We currently have ${hospital.bloodStock[bloodType]} units and need a total of ${unitsNeeded} units.</p>
-                 <p>Your contribution can save lives. Please consider donating.</p>
-                 <p>Thank you!</p>`
+                  donor.email,
+                  `🚨 URGENT: Immediate Blood Donation Needed – ${bloodType}`,
+                  `
+                  <html>
+                      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                          <h2 style="color: #b71c1c;">⚠️ CRITICAL BLOOD SHORTAGE – IMMEDIATE ACTION REQUIRED</h2>
+                          
+                          <p>Dear <strong>${donor.name}</strong>,</p>
+          
+                          <p style="font-size: 16px;">
+                              <strong>${hospital.hospitalName}</strong>, a <strong>${hospital.hospitalType}</strong> hospital, is facing an urgent shortage of <strong>${bloodType} blood</strong>.
+                              The current stock is critically low, with only <strong>${hospital.bloodStock[bloodType]} units</strong> available. 
+                              We urgently require <strong>${unitsNeeded} units</strong> to meet the immediate medical needs of patients.
+                          </p>
+          
+                          <h3 style="color: #d32f2f;">Hospital Details:</h3>
+                          <p>
+                              📍 <strong>Location:</strong> ${hospital.address}, ${hospital.city}, ${hospital.state} <br>
+                              📞 <strong>Contact:</strong> <a href="tel:${hospital.phone}" style="color: #d32f2f;">${hospital.phone}</a>
+                          </p>
+          
+                          <h3 style="color: #d32f2f;">How You Can Help</h3>
+                          <p style="font-size: 16px;">
+                              If you are eligible to donate, please visit the hospital at the earliest opportunity. 
+                              Your donation can make a life-saving difference.
+                          </p>
+          
+                          <p style="font-size: 16px;">
+                              <strong>Every second counts.</strong> Thank you for your generosity and willingness to help during this urgent medical need.
+                          </p>
+          
+                          <p style="color: #b71c1c; font-weight: bold;">
+                              <em>We deeply appreciate your support in saving lives.</em>
+                          </p>
+                      </body>
+                  </html>
+                  `
               )
-            );
+          );
     
             await Promise.all(emailPromises);
             console.log(`Sent alert emails to ${donors.length} donors`);

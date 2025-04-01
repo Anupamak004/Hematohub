@@ -384,9 +384,9 @@ const [donations, setDonations] = useState([]); // Define `donations`
           <button className="sidebar-btn" onClick={() => setCurrentTab("bloodRequests")}>
             <MdEmergency className="icon-orange" /> Blood Requests
           </button>
-          <button className="sidebar-btn" onClick={() => setCurrentTab("donationHistory")}>
+          {/*<button className="sidebar-btn" onClick={() => setCurrentTab("donationHistory")}>
             <MdHistory className="icon-purple" /> Donation History
-          </button>
+          </button>*/}
           <button className="sidebar-btn" onClick={() => setCurrentTab("receivedBlood")}>
             <MdMoveToInbox className="icon-blue" /> Donor Information
           </button>
@@ -523,7 +523,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
         <label>Units:</label>
         <input type="number" value={units} onChange={(e) => setUnits(e.target.value)} required />
 
-        <button type="submit">Add Donation</button>
+        <button type="submit">Add Recipient Details</button>
       </form>
     </div>
 
@@ -649,7 +649,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
         <label>Units:</label>
         <input type="number" value={receivedUnits} onChange={(e) => setReceivedUnits(e.target.value)} required />
 
-        <button type="submit">Add Received Blood</button>
+        <button type="submit">Add Donor Details</button>
       </form>
     </div>
 

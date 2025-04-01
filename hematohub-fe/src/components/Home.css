@@ -62,6 +62,10 @@
   background-color: #b12121;
 }
 
+.user-type-select{
+  margin-bottom: 1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .intro-content {

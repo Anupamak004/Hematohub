@@ -10,13 +10,11 @@ const donorSchema = new mongoose.Schema({
   height: { type: Number, required: true },
   bloodType: { type: String, required: true },
   hasDisease: { type: Boolean, default: false },
-  disease: { type: String, default: "" },
   aadhar: { type: String, required: true, unique: true },
   mobile: { type: String, required: true, unique: true },
   hasDonated: {type: Boolean, default: null},
   lastDonation: { type: Date, default: null },
   medications: { type: Boolean, default: null },
-  emergency: { type: Boolean, default: false },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   eligibility: { type: Boolean, default: false },// ✅ NEW FIELD (true = Yes, false = No)

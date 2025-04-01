@@ -12,6 +12,7 @@ function AdminDashboard() {
     const [donors, setDonors] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("donors");
     const [expandedId, setExpandedId] = useState(null);
+    const [message, setMessage] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -36,6 +37,9 @@ console.log("Admin Token:", token);
     };
 
     const handleDelete = async (id, type) => {
+        if (!window.confirm("Are you sure you want to delete this record? This action cannot be undone.")) {
+            return;
+        }
         const token = localStorage.getItem("adminToken");
         console.log("Admin Token before delete request:", token); // Debugging log
         console.log(id);
@@ -60,7 +64,6 @@ console.log("Admin Token:", token);
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Failed to delete user");
             }
-    
             console.log("Delete successful");
     
             if (type === "donors") {
@@ -68,6 +71,7 @@ console.log("Admin Token:", token);
             } else {
                 setHospitals(prevHospitals => prevHospitals.filter(hospital => hospital._id !== id));
             }
+            alert("Record deleted successfully!");
         } catch (err) {
             console.error("Error deleting user:", err.message);
         }
@@ -165,30 +169,47 @@ console.log("Admin Token:", token);
                     </section>
                 ) : (
                     <section>
-                        <h3>Hospitals</h3>
+    <h3>Hospitals</h3>
+    <ul>
+        {hospitals.map(hospital => (
+            <li key={hospital._id} className={`admin-current-item ${expandedId === hospital._id ? "expanded" : ""}`}>
+                <div className="admin-current-info">
+                    <span><strong>Hospital Name:</strong> {hospital.hospitalName}</span>
+                    <div>
+                        <button onClick={() => toggleDetails(hospital._id)} className="admin-current-view">
+                            {expandedId === hospital._id ? "Hide" : "View"}
+                        </button>
+                        <button onClick={() => handleDelete(hospital._id, "hospitals")} className="admin-current-delete">Delete</button>
+                    </div>
+                </div>
+                {expandedId === hospital._id && (
+                    <div className="admin-current-details">
+                        <p><strong>Registration No:</strong> {hospital.registrationNumber}</p>
+                        <p><strong>Hospital Type:</strong> {hospital.hospitalType}</p>
+                        <p><strong>Phone:</strong> {hospital.phoneNumber}</p>
+                        {hospital.alternatePhone && <p><strong>Alternate Phone:</strong> {hospital.alternatePhone}</p>}
+                        <p><strong>Address:</strong> {hospital.address}, {hospital.city}, {hospital.state}, {hospital.zip}, {hospital.country}</p>
+                        {hospital.latitude && hospital.longitude && (
+                            <p><strong>Location:</strong> {hospital.latitude}, {hospital.longitude}</p>
+                        )}
+                        <p><strong>License Number:</strong> {hospital.licenseNumber}</p>
+                        {hospital.website && <p><strong>Website:</strong> <a href={hospital.website} target="_blank" rel="noopener noreferrer">{hospital.website}</a></p>}
+                        {hospital.operatingHours && <p><strong>Operating Hours:</strong> {hospital.operatingHours}</p>}
+                        <p><strong>Email:</strong> {hospital.email}</p>
+                        <h4>Blood Stock</h4>
                         <ul>
-                            {hospitals.map(hospital => (
-                                <li key={hospital._id} className={`admin-current-item ${expandedId === hospital._id ? "expanded" : ""}`}>
-                                    <div className="admin-current-info">
-                                        <span><strong>Hospital Name :</strong>{hospital.hospitalName}</span>
-                                        <div>
-                                            <button onClick={() => toggleDetails(hospital._id)} className="admin-current-view">
-                                                {expandedId === hospital._id ? "Hide" : "View"}
-                                            </button>
-                                            <button onClick={() => handleDelete(hospital._id, "hospitals")} className="admin-current-delete">Delete</button>
-                                        </div>
-                                    </div>
-                                    {expandedId === hospital._id && (
-                                        <div className="admin-current-details">
-                                            <p><strong>Registration No:</strong> {hospital.registrationNumber}</p>
-                                            <p><strong>Phone:</strong> {hospital.phoneNumber}</p>
-                                            <p><strong>City:</strong> {hospital.city}</p>
-                                        </div>
-                                    )}
-                                </li>
+                            {Object.entries(hospital.bloodStock).map(([bloodType, count]) => (
+                                <li key={bloodType}><strong>{bloodType}:</strong> {count} units</li>
                             ))}
                         </ul>
-                    </section>
+                        
+                    </div>
+                )}
+            </li>
+        ))}
+    </ul>
+</section>
+
                 )}
             </div>
         </div>

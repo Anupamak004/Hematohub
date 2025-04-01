@@ -133,7 +133,7 @@ const Register = () => {
       }
     
       const userData = userType === "donor" ? {
-        name, dob, gender, address, weight, height, bloodType, hasDisease, disease, aadhar, mobile, hasDonated, lastDonation: hasDonated ? lastDonation : null, medications, emergency, email, password
+        name, dob, gender, address, weight, height, bloodType, hasDisease, aadhar, mobile, hasDonated, lastDonation: hasDonated ? lastDonation : null, medications, email, password
       } : {
         hospitalName, registrationNumber, hospitalType, email, phoneNumber, alternatePhone, address, city, state, zip, country, latitude, longitude, password, bloodBankAvailable, licenseNumber, bloodStock, website, operatingHours
       };
@@ -232,13 +232,6 @@ const Register = () => {
         <input type="checkbox" checked={hasDisease} onChange={() => setHasDisease(!hasDisease)} />
       </div>
 
-      {hasDisease && (
-        <div className="input-box">
-          <label>If yes, specify:</label>
-          <input type="text" placeholder="Enter disease name" value={disease} onChange={(e) => setDisease(e.target.value)} required />
-        </div>
-      )}
-
       <div className="input-box">
         <label>Aadhar Number <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
         <input type="text" placeholder="Enter your Aadhar number" value={aadhar} onChange={(e) => setAadhar(e.target.value)} required />
@@ -333,11 +326,6 @@ const Register = () => {
   </div>
 </div>
 
-
-      <div className="checkbox-container">
-        <label>Available for Emergency Donation</label>
-        <input type="checkbox" checked={emergency} onChange={() => setEmergency(!emergency)} />
-      </div>
 
           </>
         ) : (

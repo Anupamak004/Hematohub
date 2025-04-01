@@ -25,7 +25,7 @@ async function sendEmail(recipient, subject, content) {
       const response = await axios.post(
           'https://api.brevo.com/v3/smtp/email',
           {
-              sender: { email: process.env.BREVO_EMAIL.trim(), name: 'Blood Bank System' },
+              sender: { email: process.env.BREVO_EMAIL.trim(), name: 'Hematohub-Blood Bank System' },
               to: [{ email: recipient }],
               subject,
               htmlContent: content
@@ -75,20 +75,36 @@ router.post('/blood-requests', async (req, res) => {
 
       // Send emails to all matching donors
       const emailPromises = donors.map(async (donor) => {
-          const emailSubject = 'Urgent Blood Request';
-          const emailContent = `
-              <html>
-                  <body>
-                      <h2>Urgent Blood Donation Request</h2>
-                      <p>Dear ${donor.name},</p>
-                      <p>An urgent blood request has been made for ${units} units of ${bloodType} blood type.</p>
-                      <p>Hospital: ${hospital.hospitalName}</p>
-                      <p>Location: ${hospital.address}, ${hospital.city}, ${hospital.state}</p>
-                      <p>Please contact the hospital if you can help.</p>
-                      <p>Thank you for your potential life-saving contribution!</p>
-                  </body>
-              </html>
-          `;
+        const emailSubject = "⚠️ URGENT: Immediate Blood Donation Required";
+    const emailContent = `
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #b71c1c;">🚨 CRITICAL BLOOD SHORTAGE – IMMEDIATE DONATION NEEDED</h2>
+                <p>Dear <strong>${donor.name}</strong>,</p>
+                
+                <p style="font-size: 16px;">
+                    We urgently need <strong>${units} unit(s) of ${bloodType} blood</strong> for a patient in critical condition.
+                    Your donation is needed <strong>immediately</strong> at <strong>${hospital.hospitalName}</strong>.
+                </p>
+
+                <h3 style="color: #d32f2f;">Hospital Information:</h3>
+                <p>
+                    📍 <strong>Address:</strong> ${hospital.address}<br>
+                    📞 <strong>Contact:</strong> <a href="tel:${hospital.phoneNumber}" style="color: #d32f2f;">${hospital.phoneNumber}</a>
+                </p>
+
+                <h3 style="color: #d32f2f;">Immediate Action Required</h3>
+                <p style="font-size: 16px;">
+                    If you are eligible to donate, <strong>please proceed to the hospital as soon as possible.</strong> 
+                    This is a time-sensitive situation, and your contribution can save a life.
+                </p>
+
+                <p style="color: #b71c1c; font-weight: bold;">
+                    <em>Your prompt response is crucial. Thank you for your willingness to help in this urgent medical emergency.</em>
+                </p>
+            </body>
+        </html>
+    `;
 
           try {
               await sendEmail(donor.email, emailSubject, emailContent);
