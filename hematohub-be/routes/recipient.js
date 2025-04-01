@@ -168,11 +168,34 @@ router.post("/receive", async (req, res) => {
     hospital.markModified("bloodStock");
     await hospital.save();
 
-    res.status(201).json({ message: "Received blood entry recorded successfully", receivedBlood });
+    // ✅ Find donor by DOB and last 4 digits of Aadhaar
+    const donor = await Donor.findOne({ dob: new Date(dob).toISOString(), aadhaarLast4 });
+
+    if (donor) {
+      const lastDonationDate = new Date(receivedDate);
+      const nextEligibleDate = new Date(lastDonationDate);
+      nextEligibleDate.setDate(nextEligibleDate.getDate() + 90); // 3-month restriction
+
+      // Update donation history
+      donor.donationHistory.push({
+        previousDonationDate: lastDonationDate.toISOString(),
+        nextEligibleDate: nextEligibleDate.toISOString(),
+      });
+
+      await donor.save();
+    }
+
+    res.status(201).json({ 
+      message: "Received blood entry recorded successfully", 
+      receivedBlood,
+      donorUpdated: donor ? true : false
+    });
+
   } catch (error) {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 });
+
 
 
 

@@ -34,6 +34,10 @@ const [urgentBloodType, setUrgentBloodType] = useState("");
   const [message, setMessage] = useState("");
   const [dob, setDob] = useState("");
 const [aadhaarLast4, setAadhaarLast4] = useState("");
+const [donations, setDonations] = useState([]); // Define `donations`
+  const [donorId, setDonorId] = useState(localStorage.getItem("donorId")); // Define `donorId`
+  const [loading, setLoading] = useState(true);
+
 
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] || [];
@@ -133,32 +137,7 @@ const [aadhaarLast4, setAadhaarLast4] = useState("");
       setDonatedBlood([]);
     }
   };
-
-
-  const fetchReceivedBlood = async () => {
-    if (!hospitalData || !hospitalData._id) return;
-  
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`
-      );
-  
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      console.log("Fetched Received Blood Data:", data); // Debugging
-  
-      setReceivedBlood(Array.isArray(data.receivedBloodEntries) ? data.receivedBloodEntries : []);
-    } catch (error) {
-      console.error("Error fetching received blood data:", error);
-      setReceivedBlood([]);
-    }
-  };
-  
-  
-  
+    
 
 
   const handleSubmit = async (e) => {
@@ -239,18 +218,47 @@ const [aadhaarLast4, setAadhaarLast4] = useState("");
       return;
     }
   
-    const newReceivedBlood = {
-      receivedFrom,
-  bloodType: receivedBloodType,
-  receivedDate,
-  units: Number(receivedUnits),
-  dob, // New field
-  aadhaarLast4, // New field
-  hospitalId: hospitalData._id,
-    };
-  
-    console.log(receivedFrom,bloodType,receivedDate,units,hospitalData);
     try {
+      // Step 1: Check if the donor exists based on DOB & Aadhaar
+      const donorResponse = await fetch(`http://localhost:5000/api/donors/check-donor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dob, aadhaarLast4, receivedFrom, receivedBloodType }),
+      });
+  
+      const donorData = await donorResponse.json();
+  
+      if (!donorResponse.ok || !donorData) {
+        alert("No donor found with the provided details.");
+        return;
+      }
+  
+      // Step 2: Verify donor's name and blood type
+      if (donorData.donor.name !== receivedFrom || donorData.donor.bloodType !== receivedBloodType) {
+        alert("Donor details do not match. Please check the name and blood type.");
+        return;
+      }
+  
+      console.log("Verified Donor:", donorData.donor);
+  
+      // Step 3: Update Donor's Donation History **FIRST**
+      const donorUpdated = await handleUpdateDonation(donorData.donor._id);
+      if (!donorUpdated) {
+        alert("Donation history update failed. Blood reception not recorded.");
+        return;
+      }
+  
+      // Step 4: Proceed with blood reception
+      const newReceivedBlood = {
+        receivedFrom,
+        bloodType: receivedBloodType,
+        receivedDate,
+        units: Number(receivedUnits),
+        dob,
+        aadhaarLast4,
+        hospitalId: hospitalData._id,
+      };
+  
       const response = await fetch("http://localhost:5000/api/recipients/receive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,10 +266,12 @@ const [aadhaarLast4, setAadhaarLast4] = useState("");
       });
   
       const data = await response.json();
+  
       if (response.ok) {
         alert("Received blood successfully added");
         console.log("Received blood successfully added");
-        setReceivedBlood((prev) => [...prev, data.receivedBlood]); // Update state
+  
+        setReceivedBlood((prev) => [...prev, data.receivedBlood]);
         fetchReceivedBlood();
         setReceivedFrom("");
         setReceivedBloodType("");
@@ -273,14 +283,83 @@ const [aadhaarLast4, setAadhaarLast4] = useState("");
         alert(data.error);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error checking donor:", error);
     }
   };
   
-
+  const handleUpdateDonation = async (donorId) => {
+    const today = new Date().toISOString().split("T")[0];
+    const newDate = receivedDate;
+  
+    if (!newDate) return false;
+  
+    if (newDate > today) {
+      alert("Error: Future dates are not allowed.");
+      return false;
+    }
+  
+    if (donations.length > 0) {
+      const lastDonationDate = new Date(donations.at(-1).previousDonationDate);
+      const minNextDonationDate = new Date(lastDonationDate);
+      minNextDonationDate.setDate(minNextDonationDate.getDate() + 90); // 3-month restriction
+  
+      if (new Date(newDate) < lastDonationDate) {
+        alert(`Error: Donation date cannot be before your last recorded donation on ${lastDonationDate.toISOString().split("T")[0]}.`);
+        return false;
+      }
+  
+      if (new Date(newDate) < minNextDonationDate) {
+        alert(`Error: You must wait at least 3 months (until ${minNextDonationDate.toISOString().split("T")[0]}) before donating again.`);
+        return false;
+      }
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/donors/${donorId}/donations`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lastDonation: newDate }),
+      });
+  
+      if (response.ok) {
+        const updatedData = await response.json();
+        setDonations([...donations, updatedData.donationHistory.at(-1)]);
+        return true;
+      } else {
+        console.error("Failed to update donation");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error updating donation:", error);
+      return false;
+    }
+  };
+  
+  
   useEffect(() => {
     fetchReceivedBlood();
   }, [hospitalData]);
+  
+  const fetchReceivedBlood = async () => {
+    if (!hospitalData || !hospitalData._id) return;
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/recipients/received-blood/${hospitalData._id}`);
+  
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log("Fetched Received Blood Data:", data); 
+  
+      setReceivedBlood(Array.isArray(data.receivedBloodEntries) ? data.receivedBloodEntries : []);
+    } catch (error) {
+      console.error("Error fetching received blood data:", error);
+      setReceivedBlood([]);
+    }
+  };
+  
   
 
 

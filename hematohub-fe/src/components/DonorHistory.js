@@ -24,54 +24,7 @@ const DonorHistory = ({ donorId = localStorage.getItem("donorId") }) => {
   }, [donorId]);
 
   // Handle updating last donation date
-  const handleUpdateDonation = async () => {
-    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-    const newDate = prompt(`Enter last donation date (YYYY-MM-DD) (Max: ${today}):`);
-  
-    if (!newDate) return;
-  
-    // Validate: Prevent future dates
-    if (newDate > today) {
-      alert("Error: Future dates are not allowed.");
-      return;
-    }
-  
-    if (donations.length > 0) {
-      const lastDonationDate = new Date(donations.at(-1).previousDonationDate);
-      const minNextDonationDate = new Date(lastDonationDate);
-      minNextDonationDate.setDate(minNextDonationDate.getDate() + 90); // 3-month restriction
-  
-      // 🚫 Prevent entering a date before the last donation date
-      if (new Date(newDate) < lastDonationDate) {
-        alert(`Error: Donation date cannot be before your last recorded donation on ${lastDonationDate.toISOString().split("T")[0]}.`);
-        return;
-      }
-  
-      // 🚫 Enforce 3-month restriction
-      if (new Date(newDate) < minNextDonationDate) {
-        alert(`Error: You must wait at least 3 months (until ${minNextDonationDate.toISOString().split("T")[0]}) before donating again.`);
-        return;
-      }
-    }
-  
-    try {
-      const response = await fetch(`http://localhost:5000/api/donors/${donorId}/donations`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lastDonation: newDate }),
-      });
-  
-      if (response.ok) {
-        const updatedData = await response.json();
-        setDonations([...donations, updatedData.donationHistory.at(-1)]); // Append last donation record
-      } else {
-        console.error("Failed to update donation");
-      }
-    } catch (error) {
-      console.error("Error updating donation:", error);
-    }
-  };
-  
+
 
   return (
     <div className="donation-history-container">
@@ -102,7 +55,6 @@ const DonorHistory = ({ donorId = localStorage.getItem("donorId") }) => {
               )}
             </tbody>
           </table>
-          <button onClick={handleUpdateDonation}>Update Last Donation</button>
           <button onClick={() => navigate("/donor-dashboard")}>Back to Dashboard</button>
         </>
       )}

@@ -106,5 +106,44 @@ router.put("/:donorId/donations", async (req, res) => {
 });
 
 
+router.post("/check-donor", async (req, res) => {
+  try {
+    const { dob, aadhaarLast4, receivedFrom, receivedBloodType } = req.body;
+
+    if (!dob || !aadhaarLast4 || !receivedFrom || !receivedBloodType) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Find donor by DOB
+    const donor = await Donor.findOne({ dob });
+
+    if (!donor) {
+      console.log("no dob");
+      return res.status(404).json({ error: "No donor found with the provided DOB" });
+    }
+
+    // Extract last 4 digits from the stored Aadhaar number
+    const storedAadhaarLast4 = donor.aadhar.slice(-4);
+
+    if (storedAadhaarLast4 !== aadhaarLast4) {
+      console.log("no aadhar");
+
+      return res.status(400).json({ error: "Aadhaar last 4 digits do not match" });
+    }
+
+    // Additional checks for receivedFrom and receivedBloodType
+    if (donor.name !== receivedFrom || donor.bloodType !== receivedBloodType) {
+      console.log("no detail");
+
+      return res.status(400).json({ error: "Donor details do not match records" });
+    }
+
+    res.json({ donor });
+
+  } catch (error) {
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+});
+
 
 export default router;
