@@ -37,11 +37,12 @@ async function sendEmail(recipient, subject, content) {
 }
 
 // Route to add a new donation
+// Route to add a new donation
 router.post("/donate", async (req, res) => {
   try {
     const { recipientName, bloodType, date, units, hospitalId } = req.body;
 
-    // Validate input
+    
     if (!recipientName || !bloodType || !date || !units || !hospitalId) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -56,12 +57,24 @@ router.post("/donate", async (req, res) => {
     if (!hospital) {
       return res.status(404).json({ error: "Hospital not found" });
     }
+    
     console.log("Hospital found:", hospital);
-    console.log("Blood before",hospital.bloodStock[bloodType]);
+    console.log("Blood before", hospital.bloodStock[bloodType]);
+    
     if (hospital.bloodStock[bloodType] >= units) {
       hospital.bloodStock[bloodType] -= units;
-      console.log("Blood after",hospital.bloodStock[bloodType]);
+      console.log("Blood after", hospital.bloodStock[bloodType]);
+      
+      // Add to receivedBlood array to track history
+      hospital.receivedBlood.push({
+        recipientName,
+        bloodType,
+        units,
+        date: formattedDate
+      });
+      
       hospital.markModified("bloodStock");
+      hospital.markModified("receivedBlood");
       await hospital.save();
     } else {
       return res.status(400).json({ error: "Not enough blood stock available" });
@@ -69,76 +82,109 @@ router.post("/donate", async (req, res) => {
 
     // Save donation to DB
     const donation = new Recipient({ recipientName, bloodType, date: formattedDate, units, hospitalId });
-    console.log("Donation : ",donation);
     console.log("Saving donation:", donation);
     await donation.save();
     console.log("Donation saved successfully:", donation);
 
-    if (hospital.bloodStock[bloodType] < hospital.bloodThreshold[bloodType]) {
-          console.log(`Blood stock of ${bloodType} is below threshold, sending emails to donors...`);
-    
-          const donors = await Donor.find({ bloodType });
-          
-          // Calculate how many units are needed
-          // Current logic: Get back to threshold + 10 extra units
-          const unitsNeeded = (hospital.bloodThreshold[bloodType] - hospital.bloodStock[bloodType]) + 10;
-          
-          if (donors.length > 0) {
-            const emailPromises = donors.map((donor) =>
-              sendEmail(
-                  donor.email,
-                  `🚨 URGENT: Immediate Blood Donation Needed – ${bloodType}`,
-                  `
-                  <html>
-                      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                          <h2 style="color: #b71c1c;">⚠️ CRITICAL BLOOD SHORTAGE – IMMEDIATE ACTION REQUIRED</h2>
-                          
-                          <p>Dear <strong>${donor.name}</strong>,</p>
-          
-                          <p style="font-size: 16px;">
-                              <strong>${hospital.hospitalName}</strong>, a <strong>${hospital.hospitalType}</strong> hospital, is facing an urgent shortage of <strong>${bloodType} blood</strong>.
-                              The current stock is critically low, with only <strong>${hospital.bloodStock[bloodType]} units</strong> available. 
-                              We urgently require <strong>${unitsNeeded} units</strong> to meet the immediate medical needs of patients.
-                          </p>
-          
-                          <h3 style="color: #d32f2f;">Hospital Details:</h3>
-                          <p>
-                              📍 <strong>Location:</strong> ${hospital.address}, ${hospital.city}, ${hospital.state} <br>
-                              📞 <strong>Contact:</strong> <a href="tel:${hospital.phone}" style="color: #d32f2f;">${hospital.phone}</a>
-                          </p>
-          
-                          <h3 style="color: #d32f2f;">How You Can Help</h3>
-                          <p style="font-size: 16px;">
-                              If you are eligible to donate, please visit the hospital at the earliest opportunity. 
-                              Your donation can make a life-saving difference.
-                          </p>
-          
-                          <p style="font-size: 16px;">
-                              <strong>Every second counts.</strong> Thank you for your generosity and willingness to help during this urgent medical need.
-                          </p>
-          
-                          <p style="color: #b71c1c; font-weight: bold;">
-                              <em>We deeply appreciate your support in saving lives.</em>
-                          </p>
-                      </body>
-                  </html>
-                  `
-              )
-          );
-    
-            await Promise.all(emailPromises);
-            console.log(`Sent alert emails to ${donors.length} donors`);
-          } else {
-            console.log(`No ${bloodType} donors found in the database`);
-          }
-        }
+    // Track notification counts
+    let donorsNotified = 0;
+    let hospitalsNotified = 0;
 
-    res.status(201).json({ message: "Donation recorded successfully" });
+    
+    if (hospital.bloodStock[bloodType] < hospital.bloodThreshold[bloodType]) {
+      console.log(`Blood stock of ${bloodType} is below threshold, sending emails to donors and other hospitals...`);
+
+      
+      const unitsNeeded = (hospital.bloodThreshold[bloodType] - hospital.bloodStock[bloodType]) + 10;
+      
+      
+      const donors = await Donor.find({ 
+        bloodType,
+        eligibility: true,
+        hasDisease: false 
+      });
+      
+      if (donors.length > 0) {
+        const donorEmailPromises = donors.map(async (donor) => {
+          try {
+            await sendEmail(
+              donor.email,
+              `Urgent Blood Requirement - ${bloodType}`,
+              `<html>
+                <body>
+                  <h2>Urgent Blood Donation Request</h2>
+                  <p>Dear ${donor.name},</p>
+                  <p>${hospital.hospitalName}, a ${hospital.hospitalType} hospital located at ${hospital.address}, is urgently running low on ${bloodType} blood.</p>
+                  <p>We currently have ${hospital.bloodStock[bloodType]} units and need a total of ${unitsNeeded} more units.</p>
+                  <p>Your contribution can save lives. Please consider donating.</p>
+                  <p>Thank you for your help!</p>
+                </body>
+              </html>`
+            );
+            donorsNotified++;
+          } catch (emailError) {
+            console.error(`Failed to send email to donor ${donor.email}`, emailError);
+          }
+        });
+
+        await Promise.all(donorEmailPromises);
+        console.log(`Sent alert emails to ${donorsNotified} donors`);
+      } else {
+        console.log(`No eligible ${bloodType} donors found in the database`);
+      }
+      
+      
+      const otherHospitals = await Hospital.find({
+        _id: { $ne: hospitalId }, 
+        [`bloodStock.${bloodType}`]: { $gte: unitsNeeded + (hospital.bloodThreshold[bloodType] || 5) }
+      });
+      
+      if (otherHospitals.length > 0) {
+        const hospitalEmailPromises = otherHospitals.map(async (otherHospital) => {
+          try {
+            await sendEmail(
+              otherHospital.email,
+              `Blood Supply Request - ${bloodType}`,
+              `<html>
+                <body>
+                  <h2>Blood Supply Request</h2>
+                  <p>Dear ${otherHospital.hospitalName},</p>
+                  <p>${hospital.hospitalName} is currently experiencing a shortage of ${bloodType} blood type.</p>
+                  <p>Current stock: ${hospital.bloodStock[bloodType]} units</p>
+                  <p>Units needed: ${unitsNeeded} units</p>
+                  <p>Our records indicate your facility may have sufficient surplus to assist us.</p>
+                  <p>Please contact us at ${hospital.phoneNumber} or ${hospital.email} if you can help with a blood transfer.</p>
+                  <p>Thank you for your cooperation in this important matter.</p>
+                  <p>Regards,<br>${hospital.hospitalName}</p>
+                </body>
+              </html>`
+            );
+            hospitalsNotified++;
+          } catch (emailError) {
+            console.error(`Failed to send email to hospital ${otherHospital.email}, emailError`);
+          }
+        });
+        
+        await Promise.all(hospitalEmailPromises);
+        console.log(`Sent alert emails to ${hospitalsNotified} hospitals`);
+      } else {
+        console.log(`No hospitals with sufficient ${bloodType} blood stock found`);
+      }
+    }
+
+    res.status(201).json({ 
+      message: "Donation recorded successfully", 
+      alerts: {
+        donorsNotified,
+        hospitalsNotified
+      }
+    });
   } catch (error) {
     console.error("Error saving donation:", error);
     res.status(500).json({ error: "Server error", details: error.message });
   }
 });
+
 
   router.get("/donated-blood/:hospitalId", async (req, res) => {
     try {

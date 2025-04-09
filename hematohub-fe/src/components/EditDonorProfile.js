@@ -17,11 +17,9 @@ const EditDonorDashboard = () => {
     height: "",
     bloodType: "",
     hasDisease: null,
-    disease: "",
     aadhar: "",
     mobile: "",
     medications: null,
-    emergency: false,
     email: "",
   });
 
@@ -61,10 +59,11 @@ const EditDonorDashboard = () => {
   }, [storedDonorId, token, navigate]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+
     setFormData((prevData) => ({
       ...prevData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "radio" ? value === "true" : value,
     }));
   };
 
@@ -100,10 +99,7 @@ const EditDonorDashboard = () => {
     <div className="edit-donor-dashboard">
       <h2>Edit Donor Profile</h2>
       <form onSubmit={handleSubmit} className="edit-donor-form">
-        {/* Basic Fields */}
-        {[
-          { label: "Name", name: "name", type: "text" },
-          { label: "Date of Birth", name: "dob", type: "date" },
+        {[{ label: "Name", name: "name", type: "text" },
           { label: "Address", name: "address", type: "text" },
           { label: "Weight (kg)", name: "weight", type: "number" },
           { label: "Height (cm)", name: "height", type: "number" },
@@ -124,9 +120,7 @@ const EditDonorDashboard = () => {
 
         {/* Disease Question */}
         <div className="form-group">
-          <label>
-            Do you have any disease? <span className="required">*</span>
-          </label>
+          <label>Do you have any disease?</label>
           <div className="radio-group">
             <label>
               <input
@@ -134,7 +128,7 @@ const EditDonorDashboard = () => {
                 name="hasDisease"
                 value="true"
                 checked={formData.hasDisease === true}
-                onChange={() => setFormData({ ...formData, hasDisease: true })}
+                onChange={handleChange}
               />
               Yes
             </label>
@@ -144,34 +138,16 @@ const EditDonorDashboard = () => {
                 name="hasDisease"
                 value="false"
                 checked={formData.hasDisease === false}
-                onChange={() =>
-                  setFormData({ ...formData, hasDisease: false, disease: "" })
-                }
+                onChange={handleChange}
               />
               No
             </label>
           </div>
         </div>
 
-        {/* Disease Details */}
-        {formData.hasDisease === true && (
-          <div className="form-group">
-            <label>If yes, specify disease:</label>
-            <input
-              type="text"
-              name="disease"
-              value={formData.disease}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        )}
-
         {/* Medication Question */}
         <div className="form-group">
-          <label>
-            Are you taking any medications? <span className="required">*</span>
-          </label>
+          <label>Are you taking any medications?</label>
           <div className="radio-group">
             <label>
               <input
@@ -179,7 +155,7 @@ const EditDonorDashboard = () => {
                 name="medications"
                 value="true"
                 checked={formData.medications === true}
-                onChange={() => setFormData({ ...formData, medications: true })}
+                onChange={handleChange}
               />
               Yes
             </label>
@@ -189,22 +165,15 @@ const EditDonorDashboard = () => {
                 name="medications"
                 value="false"
                 checked={formData.medications === false}
-                onChange={() =>
-                  setFormData({ ...formData, medications: false, medicationDetails: "" })
-                }
+                onChange={handleChange}
               />
               No
             </label>
           </div>
         </div>
 
-        {/* Submit Button */}
         <div className="button-group">
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => navigate("/donor-dashboard")}
-          >
+          <button type="button" className="back-button" onClick={() => navigate("/donor-dashboard")}>
             Back
           </button>
           <button type="submit" className="save-button" disabled={loading}>

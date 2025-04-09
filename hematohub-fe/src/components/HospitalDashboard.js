@@ -85,15 +85,22 @@ const [donations, setDonations] = useState([]); // Define `donations`
       setMessage("Please select a blood type and enter the required units.");
       return;
     }
-
+  
     try {
       const response = await axios.post("http://localhost:5000/api/hospitals/blood-requests", {
         hospitalId: hospitalData._id,
         bloodType: urgentBloodType,
         units: urgentUnits,
       });
-
+  
       setMessage(response.data.message || "Urgent blood request sent successfully.");
+  
+      // Clear the form fields
+      setUrgentBloodType("");
+      setUrgentUnits("");
+  
+      // Remove success message after 5 seconds
+      setTimeout(() => setMessage(""), 5000);
     } catch (error) {
       setMessage(error.response?.data?.error || "No Donor to send urgent blood request.");
     }

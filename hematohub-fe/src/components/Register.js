@@ -92,7 +92,7 @@ const Register = () => {
 
 
 
-    const validatePhone = (num) => /^[0-9]{10,15}$/.test(num);
+    const validatePhone = (num) => /^[0-9]{10}$/.test(num);
     const validateZip = (zip) => /^[0-9]{4,10}$/.test(zip);
     const validateEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
     const validatePassword = (password) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);

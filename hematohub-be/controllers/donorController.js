@@ -167,44 +167,68 @@ export const loginDonor = async (req, res) => {
   };
   
 
-const getDonorDetails = asyncHandler(async (req, res) => {
-  const donor = await Donor.findById(req.params.id).select("-password");
+export const getDonorById = async (req, res) => {
+  try {
+    const donor = await Donor.findById(req.params.id);
+    if (!donor) return res.status(404).json({ error: "Donor not found" });
 
-  if (!donor) {
-    res.status(404);
-    throw new Error("Donor not found");
+    res.json(donor);
+  } catch (error) {
+    console.error("Error fetching donor:", error);
+    res.status(500).json({ error: "Server error" });
   }
+};
 
-  res.json(donor);
-});
+// Update Donor Profile
+export const updateDonor = async (req, res) => {
+  try {
+      // Find the existing donor
+      const existingDonor = await Donor.findById(req.params.id);
+      if (!existingDonor) return res.status(404).json({ error: "Donor not found" });
 
+      // Extract updated donor data from request body
+      const { dob, weight, height, hasDisease, medications, lastDonationDate, ...otherUpdates } = req.body;
 
+      // Calculate age from date of birth
+      const birthDate = new Date(dob);
+      const age = new Date().getFullYear() - birthDate.getFullYear();
 
-// @desc    Update donor details
-// @route   PUT /api/donors/:id
-// @access  Private
-const updateDonorDetails = asyncHandler(async (req, res) => {
-  const donor = await Donor.findById(req.params.id);
+      // Calculate BMI
+      const heightInMeters = height / 100;
+      const bmi = weight / (heightInMeters * heightInMeters);
 
-  if (!donor) {
-    res.status(404);
-    throw new Error("Donor not found");
+      // Determine next donation date (assuming a 3-month gap is required)
+      const nextDonationDate = new Date(lastDonationDate);
+      nextDonationDate.setMonth(nextDonationDate.getMonth() + 3);
+      const currentDate = new Date();
+
+      // Determine eligibility (true or false)
+      let eligibility = true;
+
+      if (age < 18 || age > 65) {
+          eligibility = false;
+      } else if (bmi < 18.5 || bmi > 30) {
+          eligibility = false;
+      } else if (hasDisease || medications) {
+          eligibility = false;
+      } else if (currentDate < nextDonationDate) {
+          eligibility = false;
+      }
+
+      // Update donor details and eligibility in database
+      const updatedDonor = await Donor.findByIdAndUpdate(
+          req.params.id,
+          { 
+              ...otherUpdates,  // Update all other fields
+              dob, weight, height, hasDisease, medications, lastDonationDate, 
+              eligibility // Ensure eligibility is updated based on new data
+          },
+          { new: true } // Return updated donor
+      );
+
+      res.json({ message: "Profile updated successfully", donor: updatedDonor });
+  } catch (error) {
+      console.error("Error updating donor:", error);
+      res.status(500).json({ error: "Server error" });
   }
-
-  donor.name = req.body.name || donor.name;
-  donor.mobile = req.body.mobile || donor.mobile;  // Match frontend field
-  donor.address = req.body.address || donor.address;
-  donor.weight = req.body.weight || donor.weight;  // Match frontend field
-  donor.height = req.body.height || donor.height;  // Match frontend field
-  donor.lastDonation = req.body.lastDonation || donor.lastDonation;  // Match frontend field
-  donor.email = req.body.email || donor.email;
-
-  donor.eligibility = calculateEligibility(donor);
-  
-  await donor.save();
-  res.json({ message: "Donor details updated successfully", donor });
-});
-
-export { getDonorDetails, updateDonorDetails };
-
-
+};

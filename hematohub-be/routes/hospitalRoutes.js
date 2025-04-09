@@ -47,83 +47,127 @@ async function sendEmail(recipient, subject, content) {
 
 router.post('/blood-requests', async (req, res) => {
   try {
-      const { hospitalId, bloodType, units } = req.body;
+    const { hospitalId, bloodType, units } = req.body;
 
-      // Find the hospital making the request
-      const hospital = await Hospital.findById(hospitalId);
-      if (!hospital) {
-          console.log("'Hospital not found");
-          return res.status(404).json({ error: 'Hospital not found' });
-      }
+    if (!hospitalId || !bloodType || !units) {
+      return res.status(400).json({ error: 'All fields (hospitalId, bloodType, units) are required' });
+    }
 
-      // Determine donor query based on blood type
-      let donorQuery = { 
-          eligibility: true,
-          hasDisease:false, 
-          bloodType: bloodType === 'ALL' ? { $exists: true } : bloodType 
-      };
+    const hospital = await Hospital.findById(hospitalId);
+    if (!hospital) {
+      console.log("❌ Hospital not found");
+      return res.status(404).json({ error: 'Hospital not found' });
+    }
 
-      // Find eligible donors matching the blood type
-      const donors = await Donor.find(donorQuery);
+    console.log(`📢 Blood request received: ${units} units of ${bloodType} from ${hospital.hospitalName}`);
 
-      if (donors.length === 0) {
-        console.log("'No donor not found");
-          return res.status(404).json({ 
-              message: 'No eligible donors found for the requested blood type' 
-          });
-      }
+    const donorQuery = {
+      eligibility: true,
+      hasDisease: false,
+      bloodType: bloodType === 'ALL' ? { $exists: true } : bloodType
+    };
 
-      // Send emails to all matching donors
+    const donors = await Donor.find(donorQuery);
+
+    let donorsNotified = 0;
+    let hospitalsNotified = 0;
+
+    if (donors.length > 0) {
+      console.log(`✅ Found ${donors.length} eligible donors for ${bloodType}`);
+
       const emailPromises = donors.map(async (donor) => {
         const emailSubject = "⚠️ URGENT: Immediate Blood Donation Required";
-    const emailContent = `
-        <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #b71c1c;">🚨 CRITICAL BLOOD SHORTAGE – IMMEDIATE DONATION NEEDED</h2>
-                <p>Dear <strong>${donor.name}</strong>,</p>
-                
-                <p style="font-size: 16px;">
-                    We urgently need <strong>${units} unit(s) of ${bloodType} blood</strong> for a patient in critical condition.
-                    Your donation is needed <strong>immediately</strong> at <strong>${hospital.hospitalName}</strong>.
-                </p>
-
-                <h3 style="color: #d32f2f;">Hospital Information:</h3>
-                <p>
-                    📍 <strong>Address:</strong> ${hospital.address}<br>
-                    📞 <strong>Contact:</strong> <a href="tel:${hospital.phoneNumber}" style="color: #d32f2f;">${hospital.phoneNumber}</a>
-                </p>
-
-                <h3 style="color: #d32f2f;">Immediate Action Required</h3>
-                <p style="font-size: 16px;">
-                    If you are eligible to donate, <strong>please proceed to the hospital as soon as possible.</strong> 
-                    This is a time-sensitive situation, and your contribution can save a life.
-                </p>
-
-                <p style="color: #b71c1c; font-weight: bold;">
-                    <em>Your prompt response is crucial. Thank you for your willingness to help in this urgent medical emergency.</em>
-                </p>
+        const emailContent = `
+          <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #b71c1c;">🚨 CRITICAL BLOOD SHORTAGE – IMMEDIATE DONATION NEEDED</h2>
+              <p>Dear <strong>${donor.name}</strong>,</p>
+              <p>We urgently need <strong>${units} unit(s) of ${bloodType} blood</strong> at <strong>${hospital.hospitalName}</strong>.</p>
+              <h3 style="color: #d32f2f;">Hospital Information:</h3>
+              <p>📍 <strong>Address:</strong> ${hospital.address}</p>
+              <p>📞 <strong>Contact:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
+              <h3 style="color: #d32f2f;">Immediate Action Required</h3>
+              <p>If you are eligible to donate, <strong>please proceed to the hospital as soon as possible.</strong></p>
+              <p style="color: #b71c1c;"><em>Your prompt response is crucial. Thank you for your willingness to help.</em></p>
             </body>
-        </html>
-    `;
+          </html>
+        `;
 
-          try {
-              await sendEmail(donor.email, emailSubject, emailContent);
-          } catch (emailError) {
-              console.error("Failed to send email to ${donor.email}", emailError);
-          }
+        try {
+          await sendEmail(donor.email, emailSubject, emailContent);
+          donorsNotified++;
+        } catch (emailError) {
+          console.error(`❌ Failed to send email to ${donor.email}:`, emailError);
+        }
       });
 
-      // Wait for all emails to be processed
       await Promise.all(emailPromises);
+    } else {
+      console.log(`⚠️ No eligible donors found for ${bloodType}`);
+    }
 
-      res.status(200).json({ 
-          message: `Blood request sent to ${donors.length} potential donors`,
-          donorsNotified: donors.length
+    const unitsNum = parseInt(units, 10);
+
+    // Find hospitals with surplus blood stock
+    const eligibleHospitals = await Hospital.find({ _id: { $ne: hospitalId } });
+
+    const hospitalsToNotify = eligibleHospitals.filter(h => {
+      if (bloodType === 'ALL') return true;
+      const stockValue = parseInt(h.bloodStock[bloodType] || 0, 10);
+      const thresholdValue = parseInt(h.bloodThreshold[bloodType] || 0, 10);
+      return stockValue > (thresholdValue + 10 + unitsNum);
+    });
+
+    if (hospitalsToNotify.length > 0) {
+      console.log(`✅ Found ${hospitalsToNotify.length} hospitals with surplus ${bloodType} blood`);
+
+      const hospitalEmailPromises = hospitalsToNotify.map(async (eligibleHospital) => {
+        const emailSubject = '🚨 URGENT: Blood Supply Request';
+        const emailContent = `
+          <html>
+            <body>
+              <h2>🚑 Emergency Blood Transfer Request</h2>
+              <p>Dear ${eligibleHospital.hospitalName},</p>
+              <p>${hospital.hospitalName} is experiencing a critical shortage of ${bloodType} blood.</p>
+              <p>📌 Required: ${units} units</p>
+              <h3>Requesting Hospital Details:</h3>
+              <p>🏥 Name: ${hospital.hospitalName}</p>
+              <p>📞 Phone: <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
+              <p>📧 Email: <a href="mailto:${hospital.email}">${hospital.email}</a></p>
+              <p>📍 Location: ${hospital.address}, ${hospital.city}, ${hospital.state}</p>
+              <p>Please contact them immediately if you can assist.</p>
+              <p><strong>Thank you for your cooperation in this urgent matter.</strong></p>
+            </body>
+          </html>
+        `;
+
+        try {
+          await sendEmail(eligibleHospital.email, emailSubject, emailContent);
+          hospitalsNotified++;
+        } catch (emailError) {
+          console.error(`❌ Failed to send email to hospital ${eligibleHospital.hospitalName}:`, emailError);
+        }
       });
+
+      await Promise.all(hospitalEmailPromises);
+    } else {
+      console.log(`⚠️ No hospitals with surplus stock found for ${bloodType}`);
+    }
+
+    if (donorsNotified === 0 && hospitalsNotified === 0) {
+      return res.status(404).json({ message: 'No eligible donors or hospitals found for the requested blood type' });
+    }
+
+    res.status(200).json({
+      message: `Blood request processed successfully`,
+      donorsNotified,
+      hospitalsNotified,
+      totalNotifications: donorsNotified + hospitalsNotified
+    });
 
   } catch (error) {
-      console.error('Blood Request Error:', error);
-      res.status(500).json({ error: 'Internal server error processing blood request' });
+    console.error('❌ Blood Request Error:', error);
+    res.status(500).json({ error: 'Internal server error processing blood request' });
   }
 });
 
