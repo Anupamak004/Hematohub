@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./DonorHistory.css"
 
 const DonorHistory = ({ donorId = localStorage.getItem("donorId") }) => {
   const navigate = useNavigate();

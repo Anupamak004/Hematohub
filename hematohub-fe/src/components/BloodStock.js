@@ -32,7 +32,7 @@ const BloodStock = () => {
           value={selectedHospital}
           onChange={(e) => setSelectedHospital(e.target.value)}
         >
-          <option value="">Select a hospital...</option>
+          <option value="">Select a hospital</option>
           {hospitals.map((hospital) => (
             <option key={hospital._id} value={hospital.hospitalName}>
               {hospital.hospitalName}
@@ -48,7 +48,7 @@ const BloodStock = () => {
           <h3>{hospitalDetails.hospitalName}</h3>
           <p>
             <strong>Type:</strong> {hospitalDetails.hospitalType} <br />
-            <strong>Address:</strong> {hospitalDetails.address}, {hospitalDetails.city}, {hospitalDetails.state} <br />
+            <strong>Address:</strong> {hospitalDetails.city}, {hospitalDetails.state} {hospitalDetails.zip}, {hospitalDetails.country}<br />
             <strong>Contact:</strong> {hospitalDetails.phoneNumber} <br />
             <strong>Email:</strong> {hospitalDetails.email} <br />
           </p>

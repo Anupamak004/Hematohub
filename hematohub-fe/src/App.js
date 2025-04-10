@@ -6,7 +6,7 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import DonorDashboard from "./components/DonorDashboard"; 
 import HospitalDashboard from "./components/HospitalDashboard"; 
-import DonationHistory from "./components/DonationHistory"; 
+//import DonationHistory from "./components/DonationHistory"; 
 import Footer from "./components/Footer";
 import About from "./components/About";  
 import Contact from "./components/Contact";  
@@ -30,7 +30,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/donor-dashboard" element={<DonorDashboard />} /> 
           <Route path="/hospital-dashboard" element={<HospitalDashboard />} /> 
-          <Route path="/donation-history" element={<DonationHistory />} /> 
+          {/*<Route path="/donation-history" element={<DonationHistory />} /> */}
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

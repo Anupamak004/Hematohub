@@ -55,11 +55,11 @@ router.post('/blood-requests', async (req, res) => {
 
     const hospital = await Hospital.findById(hospitalId);
     if (!hospital) {
-      console.log("❌ Hospital not found");
+      console.log(" Hospital not found");
       return res.status(404).json({ error: 'Hospital not found' });
     }
 
-    console.log(`📢 Blood request received: ${units} units of ${bloodType} from ${hospital.hospitalName}`);
+    console.log(` Blood request received: ${units} units of ${bloodType} from ${hospital.hospitalName}`);
 
     const donorQuery = {
       eligibility: true,
@@ -73,24 +73,34 @@ router.post('/blood-requests', async (req, res) => {
     let hospitalsNotified = 0;
 
     if (donors.length > 0) {
-      console.log(`✅ Found ${donors.length} eligible donors for ${bloodType}`);
+      console.log(`Found ${donors.length} eligible donors for ${bloodType}`);
 
       const emailPromises = donors.map(async (donor) => {
         const emailSubject = "⚠️ URGENT: Immediate Blood Donation Required";
         const emailContent = `
           <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-              <h2 style="color: #b71c1c;">🚨 CRITICAL BLOOD SHORTAGE – IMMEDIATE DONATION NEEDED</h2>
-              <p>Dear <strong>${donor.name}</strong>,</p>
-              <p>We urgently need <strong>${units} unit(s) of ${bloodType} blood</strong> at <strong>${hospital.hospitalName}</strong>.</p>
-              <h3 style="color: #d32f2f;">Hospital Information:</h3>
-              <p>📍 <strong>Address:</strong> ${hospital.address}</p>
-              <p>📞 <strong>Contact:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
-              <h3 style="color: #d32f2f;">Immediate Action Required</h3>
-              <p>If you are eligible to donate, <strong>please proceed to the hospital as soon as possible.</strong></p>
-              <p style="color: #b71c1c;"><em>Your prompt response is crucial. Thank you for your willingness to help.</em></p>
-            </body>
-          </html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Urgent Blood Donation Request</h2>
+
+    <p>Dear <strong>${donor.name}</strong>,</p>
+
+    <p>We are reaching out to inform you of an immediate need for <strong>${units} unit(s)</strong> of <strong>${bloodType}</strong> blood at <strong>${hospital.hospitalName}</strong>. You are receiving this message because you are currently eligible to donate blood of this type.</p>
+
+    <h3 style="color: #d32f2f;">Hospital Details</h3>
+        <p><strong>Hospital Name:</strong> ${hospital.hospitalName}</p>
+    <p><strong>Address:</strong>${hospital.city}, ${hospital.state}</p>
+    <p><strong>Contact Number:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
+
+    <h3 style="color: #d32f2f;">Your Support Is Vital</h3>
+    <p>If you are available, we kindly urge you to visit the hospital at your earliest convenience to make a donation.</p>
+
+    <p>Your contribution could make a life-saving difference for someone in urgent need. We sincerely appreciate your continued support and generosity.</p>
+
+    <p>Warm regards,<br>
+    <strong>HematoHub Blood Bank Team</strong></p>
+  </body>
+</html>
+
         `;
 
         try {
@@ -125,20 +135,28 @@ router.post('/blood-requests', async (req, res) => {
         const emailSubject = '🚨 URGENT: Blood Supply Request';
         const emailContent = `
           <html>
-            <body>
-              <h2>🚑 Emergency Blood Transfer Request</h2>
-              <p>Dear ${eligibleHospital.hospitalName},</p>
-              <p>${hospital.hospitalName} is experiencing a critical shortage of ${bloodType} blood.</p>
-              <p>📌 Required: ${units} units</p>
-              <h3>Requesting Hospital Details:</h3>
-              <p>🏥 Name: ${hospital.hospitalName}</p>
-              <p>📞 Phone: <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
-              <p>📧 Email: <a href="mailto:${hospital.email}">${hospital.email}</a></p>
-              <p>📍 Location: ${hospital.address}, ${hospital.city}, ${hospital.state}</p>
-              <p>Please contact them immediately if you can assist.</p>
-              <p><strong>Thank you for your cooperation in this urgent matter.</strong></p>
-            </body>
-          </html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Emergency Blood Transfer Request</h2>
+
+    <p>Dear <strong>${eligibleHospital.hospitalName}</strong>,</p>
+
+    <p>We are reaching out to request an urgent transfer of <strong>${units} unit(s)</strong> of <strong>${bloodType}</strong> blood. <strong>${hospital.hospitalName}</strong> is currently experiencing a critical need and would greatly appreciate any support your facility may be able to provide.</p>
+
+    <h3 style="color: #d32f2f;">Requesting Hospital Information</h3>
+    <p><strong>Hospital Name:</strong> ${hospital.hospitalName}</p>
+    <p><strong>Phone:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></p>
+    <p><strong>Email:</strong> <a href="mailto:${hospital.email}">${hospital.email}</a></p>
+    <p><strong>Address:</strong>${hospital.city}, ${hospital.state}</p>
+
+    <p>If your facility is able to assist with this request, please get in touch with the requesting hospital at your earliest convenience.</p>
+
+    <p>We sincerely thank you for your cooperation and continued dedication to saving lives through collaborative efforts.</p>
+
+    <p>Best regards,<br>
+    <strong>HematoHub Coordination Team</strong></p>
+  </body>
+</html>
+
         `;
 
         try {
@@ -315,12 +333,15 @@ router.get("/:hospitalName", async (req, res) => {
     res.json({
       hospitalName: hospital.hospitalName,
       registrationNumber: hospital.registrationNumber,
+      hospitalType: hospital.hospitalType,
       address: hospital.address,
       city: hospital.city,
       state: hospital.state,
       phoneNumber: hospital.phoneNumber,
       email: hospital.email,
       bloodStock: hospital.bloodStock,
+      country: hospital.country,
+      zip: hospital.zip,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error while fetching hospital data" });

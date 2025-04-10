@@ -174,7 +174,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
 
       const data = await response.json();
       if (response.ok) {
-        alert("Donation successfully added");
+        alert("Issed blood entry successfully added");
         console.log("Donation successfully added");
         setDonatedBlood((prev) => [...prev, data.donation]); // Update state properly
         fetchDonatedBlood();
@@ -283,7 +283,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
       const data = await response.json();
   
       if (response.ok) {
-        alert("Received blood successfully added");
+        alert("Received blood entry successfully added");
         console.log("Received blood successfully added");
   
         setReceivedBlood((prev) => [...prev, data.receivedBlood]);
@@ -794,19 +794,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
 
 
 
-        {currentTab === "notifications" && (
-          <section className="notifications glass-card">
-            <h2>Notifications</h2>
-            <ul>
-              {notifications.map((notification) => (
-                <li key={notification.id}>
-                  <strong>{notification.date}</strong>: {notification.message}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
+        
 {currentTab === "hospitalInfo" && (
   <section className="hospital-info glass-card">
     <h2 className="section-title">Hospital Information</h2>

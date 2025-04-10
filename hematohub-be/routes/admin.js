@@ -141,19 +141,38 @@ router.delete("/donors/:id", adminAuth, async (req, res) => {
         
         // Send email notification to donor
         try {
-            const emailSubject = "Your Blood Bank Account Has Been Removed";
-            const emailContent = `
-                <html>
-                <body>
-                    <h2>Blood Bank System Notification</h2>
-                    <p>Dear ${donorName},</p>
-                    <p>We regret to inform you that your donor account in our Blood Bank System has been removed by the administrator.</p>
-                    <p>If you believe this is a mistake or wish to discuss this further, please contact our support team.</p>
-                    <p>Thank you for your understanding.</p>
-                    <p>Regards,<br>Blood Bank Administration</p>
-                </body>
-                </html>
-            `;
+            const emailSubject = "Notice of Donor Account Removal - HematoHub";
+
+const emailContent = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Account Removal Notification</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: auto; padding: 20px;">
+      <h2 style="color: #c0392b;">Account Removal Notification</h2>
+      <p>Dear <strong>${donorName}</strong>,</p>
+
+      <p>We would like to inform you that your donor account has been removed from the HematoHub Blood Bank Management System by an administrator.</p>
+
+      <p>This action may have been taken due to inactivity, data inconsistencies, or upon request. If you believe this decision was made in error or if you would like to inquire further, we encourage you to contact our support team at your earliest convenience.</p>
+
+      <p>We value the contribution of all donors and appreciate your commitment to saving lives. Should you wish to rejoin HematoHub in the future, you are always welcome to register again.</p>
+
+      <p>Thank you for your understanding.</p>
+
+      <p>Best regards,<br>
+      <strong>HematoHub Administration Team</strong></p>
+
+      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;">
+      <p style="font-size: 12px; color: #888;">This is an automated message from the HematoHub Blood Bank Management System. Please do not reply directly to this email.</p>
+    </div>
+  </body>
+  </html>
+`;
+
             
             await sendEmail(donorEmail, emailSubject, emailContent);
             
@@ -188,19 +207,36 @@ router.delete("/hospitals/:id", adminAuth, async (req, res) => {
         
         // Send email notification to hospital
         try {
-            const emailSubject = "Your Hospital Account Has Been Removed";
-            const emailContent = `
-                <html>
-                <body>
-                    <h2>Blood Bank System Notification</h2>
-                    <p>Dear ${hospitalName},</p>
-                    <p>We regret to inform you that your hospital account in our Blood Bank System has been removed by the administrator.</p>
-                    <p>If you believe this is a mistake or wish to discuss this further, please contact our support team.</p>
-                    <p>Thank you for your understanding.</p>
-                    <p>Regards,<br>Blood Bank Administration</p>
-                </body>
-                </html>
-            `;
+            const emailSubject = "Notice of Hospital Account Removal - HematoHub";
+
+const emailContent = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Account Removal Notification</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: auto; padding: 20px;">
+      <h2 style="color: #c0392b;">Account Removal Notification</h2>
+      <p>Dear <strong>${hospitalName} Team</strong>,</p>
+
+      <p>We are writing to inform you that your hospital account has been removed from the HematoHub Blood Bank Management System by an administrator.</p>
+
+      <p>This action may have been taken due to policy violations, administrative review, or inactivity. If you believe this action was taken in error or would like to discuss the matter further, please reach out to our support team.</p>
+
+      <p>We appreciate your previous engagement with HematoHub and thank you for your efforts in supporting the blood donation ecosystem.</p>
+
+      <p>Best regards,<br>
+      <strong>HematoHub Administration Team</strong></p>
+
+      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;">
+      <p style="font-size: 12px; color: #888;">This is an automated message from the HematoHub Blood Bank Management System. Please do not reply directly to this email.</p>
+    </div>
+  </body>
+  </html>
+`;
+
             
             await sendEmail(hospitalEmail, emailSubject, emailContent);
             

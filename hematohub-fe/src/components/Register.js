@@ -149,10 +149,34 @@ const Register = () => {
         if (response.ok) {
           alert(data.message);
           alert("Please login");
+
+          console.log(data.hospitalId);
+          if (userType === "hospital" && data.hospitalId) {
+            try {
+              const thresholdResponse = await fetch("http://localhost:5000/api/recipients/check-stock-threshold", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hospitalId: data.hospitalId }),
+              });
+        
+              const thresholdData = await thresholdResponse.json();
+              if (thresholdResponse.ok) {
+                console.log("Notification info:", thresholdData.alerts);
+                if (thresholdData.alerts.donorsNotified > 0 || thresholdData.alerts.hospitalsNotified > 0) {
+                  alert(`⚠️ Notifications sent to ${thresholdData.alerts.donorsNotified} donors and ${thresholdData.alerts.hospitalsNotified} hospitals due to low blood stock.`);
+                }
+              } else {
+                console.warn("Threshold check failed:", thresholdData.error);
+              }
+            } catch (err) {
+              console.error("Threshold check error:", err);
+            }
+          }
           navigate(`/`);
         } else {
           alert(data.error || "Registration failed. Try again.");
         }
+        
       } catch (error) {
         console.error("Registration Error:", error);
         alert("Failed to register. Try again.");

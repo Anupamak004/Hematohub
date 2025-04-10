@@ -110,16 +110,43 @@ router.post("/donate", async (req, res) => {
             await sendEmail(
               donor.email,
               `Urgent Blood Requirement - ${bloodType}`,
-              `<html>
-                <body>
-                  <h2>Urgent Blood Donation Request</h2>
-                  <p>Dear ${donor.name},</p>
-                  <p>${hospital.hospitalName}, a ${hospital.hospitalType} hospital located at ${hospital.address}, is urgently running low on ${bloodType} blood.</p>
-                  <p>We currently have ${hospital.bloodStock[bloodType]} units and need a total of ${unitsNeeded} more units.</p>
-                  <p>Your contribution can save lives. Please consider donating.</p>
-                  <p>Thank you for your help!</p>
-                </body>
-              </html>`
+`<html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Urgent Blood Donation Request</h2>
+
+    <p>Dear <strong>${donor.name}</strong>,</p>
+
+    <p>We are contacting you as a currently eligible blood donor registered with <strong>HematoHub</strong>.</p>
+
+<p><strong>${hospital.hospitalName}</strong>, a ${hospital.hospitalType} hospital, has reported that the available stock of <strong>${bloodType}</strong> blood has dropped below the safety threshold required for ongoing patient care. In response, we are reaching out to eligible donors to help restore adequate supply levels.</p>
+
+    <h3 style="color: #d32f2f;">Hospital Details:</h3>
+    <ul style="list-style: none; padding-left: 0;">
+      <li><strong>Hospital Name:</strong> ${hospital.hospitalName}</li>
+      <li><strong>Address:</strong> ${hospital.city}, ${hospital.state}, ${hospital.zip}, ${hospital.country}</li>
+      <li><strong>Phone:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></li>
+      ${
+        hospital.alternatePhoneNumber
+          ? `<li><strong>Alternate Phone:</strong> <a href="tel:${hospital.alternatePhoneNumber}">${hospital.alternatePhoneNumber}</a></li>`
+          : ""
+      }
+      <li><strong>Email:</strong> <a href="mailto:${hospital.email}">${hospital.email}</a></li>
+    </ul>
+
+    <p><strong>Current Blood Stock:</strong> ${hospital.bloodStock[bloodType]} unit(s)</p>
+    <p><strong>Units Required:</strong> ${unitsNeeded} unit(s)</p>
+
+    <p>If you are available and willing, we kindly urge you to visit the hospital at your earliest convenience to make a donation. Your contribution can help save lives.</p>
+
+    <p style="margin-top: 20px; font-style: italic; color: #555;">
+      Thank you for your continued support and willingness to help in times of need.
+    </p>
+
+    <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;">
+    <p style="font-size: 12px; color: #888;">This message has been sent by HematoHub based on your verified eligibility status as a blood donor.</p>
+  </body>
+</html>`
+
             );
             donorsNotified++;
           } catch (emailError) {
@@ -144,26 +171,42 @@ router.post("/donate", async (req, res) => {
           try {
             await sendEmail(
               otherHospital.email,
-              `Blood Supply Request - ${bloodType}`,
-              `<html>
-                <body>
-                  <h2>Blood Supply Request</h2>
-                  <p>Dear ${otherHospital.hospitalName},</p>
-                  <p>${hospital.hospitalName} is currently experiencing a shortage of ${bloodType} blood type.</p>
-                  <p>Current stock: ${hospital.bloodStock[bloodType]} units</p>
-                  <p>Units needed: ${unitsNeeded} units</p>
-                  <p>Our records indicate your facility may have sufficient surplus to assist us.</p>
-                  <p>Please contact us at ${hospital.phoneNumber} or ${hospital.email} if you can help with a blood transfer.</p>
-                  <p>Thank you for your cooperation in this important matter.</p>
-                  <p>Regards,<br>${hospital.hospitalName}</p>
-                </body>
-              </html>`
+              `Blood Supply Request – ${bloodType}`,
+`<html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Request for Blood Unit Support</h2>
+
+    <p>Dear <strong>${otherHospital.hospitalName}</strong>,</p>
+
+<p>We are reaching out to request assistance following a drop in our <strong>${bloodType}</strong> blood supply below the operational threshold at <strong>${hospital.hospitalName}</strong>, a ${hospital.hospitalType} hospital.</p>
+
+    <p><strong>Hospital Details:</strong><br>
+       <li><strong>Hospital Name:</strong> ${hospital.hospitalName}</li>
+      <li><strong>Address:</strong> ${hospital.city}, ${hospital.state}, ${hospital.zip}, ${hospital.country}</li>
+      <li><strong>Phone:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></li>
+       <li><strong>Email:</strong> ${hospital.email}</li>
+    </p>
+
+    <p><strong>Current Stock:</strong> ${hospital.bloodStock[bloodType]} unit(s)<br>
+       <strong>Units Required:</strong> ${unitsNeeded} unit(s)</p>
+
+    <p>According to available records, your facility may have sufficient stock to support this requirement. If you are able to assist by facilitating a blood unit transfer, your support would be highly valued and appreciated.</p>
+
+    <p>Please contact us at your earliest convenience to coordinate further.</p>
+
+    <p>We appreciate your continued collaboration in ensuring timely and effective patient care.</p>
+
+    <p>Best regards,<br>
+    <strong>${hospital.hospitalName}</strong></p>
+  </body>
+</html>`
+
             );
-            hospitalsNotified++;
           } catch (emailError) {
-            console.error(`Failed to send email to hospital ${otherHospital.email}, emailError`);
+            console.error(`Failed to send email to hospital ${otherHospital.email}`, emailError);
           }
         });
+        
         
         await Promise.all(hospitalEmailPromises);
         console.log(`Sent alert emails to ${hospitalsNotified} hospitals`);
@@ -203,6 +246,163 @@ router.post("/donate", async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   });
+
+
+  router.post("/check-stock-threshold", async (req, res) => {
+    try {
+      const { hospitalId } = req.body;
+  
+      if (!hospitalId) {
+        return res.status(400).json({ error: "Hospital ID is required" });
+      }
+  
+      console.log(hospitalId);
+      const hospital = await Hospital.findById(hospitalId);
+      if (!hospital) {
+        return res.status(404).json({ error: "Hospital not found" });
+      }
+  
+      const lowStockTypes = [];
+      const donorNotificationCounts = {};
+      const hospitalNotificationCounts = {};
+      let totalDonorsNotified = 0;
+      let totalHospitalsNotified = 0;
+  
+      for (const bloodType in hospital.bloodStock) {
+        const currentStock = hospital.bloodStock[bloodType] || 0;
+        const threshold = hospital.bloodThreshold?.[bloodType] || 0;
+  
+        if (currentStock < threshold) {
+          lowStockTypes.push(bloodType);
+          const unitsNeeded = (threshold - currentStock) + 10;
+  
+          // Notify donors
+          const donors = await Donor.find({
+            bloodType,
+            eligibility: true,
+            hasDisease: false
+          });
+  
+          const donorEmails = donors.map(async (donor) => {
+            try {
+              await sendEmail(
+                donor.email,
+                `Urgent Blood Requirement - ${bloodType}`,
+                `<html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Urgent Blood Donation Request</h2>
+
+    <p>Dear <strong>${donor.name}</strong>,</p>
+
+    <p>We are contacting you as a currently eligible blood donor registered with <strong>HematoHub</strong>.</p>
+
+<p><strong>${hospital.hospitalName}</strong>, a ${hospital.hospitalType} hospital, has reported that the available stock of <strong>${bloodType}</strong> blood has dropped below the safety threshold required for ongoing patient care. In response, we are reaching out to eligible donors to help restore adequate supply levels.</p>
+
+    <h3 style="color: #d32f2f;">Hospital Details:</h3>
+    <ul style="list-style: none; padding-left: 0;">
+      <li><strong>Hospital Name:</strong> ${hospital.hospitalName}</li>
+      <li><strong>Address:</strong> ${hospital.city}, ${hospital.state}, ${hospital.zip}, ${hospital.country}</li>
+      <li><strong>Phone:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></li>
+      ${
+        hospital.alternatePhoneNumber
+          ? `<li><strong>Alternate Phone:</strong> <a href="tel:${hospital.alternatePhoneNumber}">${hospital.alternatePhoneNumber}</a></li>`
+          : ""
+      }
+      <li><strong>Email:</strong> <a href="mailto:${hospital.email}">${hospital.email}</a></li>
+    </ul>
+
+    <p><strong>Current Blood Stock:</strong> ${hospital.bloodStock[bloodType]} unit(s)</p>
+    <p><strong>Units Required:</strong> ${unitsNeeded} unit(s)</p>
+
+    <p>If you are available and willing, we kindly urge you to visit the hospital at your earliest convenience to make a donation. Your contribution can help save lives.</p>
+
+    <p style="margin-top: 20px; font-style: italic; color: #555;">
+      Thank you for your continued support and willingness to help in times of need.
+    </p>
+
+    <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;">
+    <p style="font-size: 12px; color: #888;">This message has been sent by HematoHub based on your verified eligibility status as a blood donor.</p>
+  </body>
+</html>`
+              );
+            } catch (err) {
+              console.error(`Failed to email donor ${donor.email}:`, err);
+            }
+          });
+          await Promise.all(donorEmails);
+          donorNotificationCounts[bloodType] = donors.length;
+          totalDonorsNotified += donors.length;
+  
+          // Notify hospitals
+          const otherHospitals = await Hospital.find({
+            _id: { $ne: hospitalId },
+            [`bloodStock.${bloodType}`]: { $gte: unitsNeeded + (threshold || 5) }
+          });
+  
+          const hospitalEmails = otherHospitals.map(async (otherHospital) => {
+            try {
+              await sendEmail(
+                otherHospital.email,
+                `Blood Supply Request - ${bloodType}`,
+                `<html>
+  <body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+    <h2 style="color: #b71c1c;">Request for Blood Unit Support</h2>
+
+    <p>Dear <strong>${otherHospital.hospitalName}</strong>,</p>
+
+<p>We are reaching out to request assistance following a drop in our <strong>${bloodType}</strong> blood supply below the operational threshold at <strong>${hospital.hospitalName}</strong>, a ${hospital.hospitalType} hospital.</p>
+
+    <p><strong>Hospital Details:</strong><br>
+       <li><strong>Hospital Name:</strong> ${hospital.hospitalName}</li>
+      <li><strong>Address:</strong> ${hospital.city}, ${hospital.state}, ${hospital.zip}, ${hospital.country}</li>
+      <li><strong>Phone:</strong> <a href="tel:${hospital.phoneNumber}">${hospital.phoneNumber}</a></li>
+       <li><strong>Email:</strong> ${hospital.email}</li>
+    </p>
+
+    <p><strong>Current Stock:</strong> ${hospital.bloodStock[bloodType]} unit(s)<br>
+       <strong>Units Required:</strong> ${unitsNeeded} unit(s)</p>
+
+    <p>According to available records, your facility may have sufficient stock to support this requirement. If you are able to assist by facilitating a blood unit transfer, your support would be highly valued and appreciated.</p>
+
+    <p>Please contact us at your earliest convenience to coordinate further.</p>
+
+    <p>We appreciate your continued collaboration in ensuring timely and effective patient care.</p>
+
+    <p>Best regards,<br>
+    <strong>${hospital.hospitalName}</strong></p>
+  </body>
+</html>`
+              );
+            } catch (err) {
+              console.error(`Failed to email hospital ${otherHospital.email}:`, err);
+            }
+          });
+          await Promise.all(hospitalEmails);
+          hospitalNotificationCounts[bloodType] = otherHospitals.length;
+          totalHospitalsNotified += otherHospitals.length;
+        }
+      }
+  
+      if (lowStockTypes.length === 0) {
+        return res.status(200).json({ message: "All blood stocks are above threshold." });
+      }
+  
+      res.status(200).json({
+        message: "Notifications sent for low stock blood types.",
+        lowStockTypes,
+        donorNotificationCounts,
+        hospitalNotificationCounts,
+        totalDonorsNotified,
+        totalHospitalsNotified
+      });
+  
+    } catch (error) {
+      console.error("Error checking blood stock:", error);
+      res.status(500).json({ error: "Server error", details: error.message });
+    }
+  });
+  
+  
   
 
 

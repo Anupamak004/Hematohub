@@ -1,31 +1,37 @@
 import React from "react";
-import "./About.css"; // Ensure styles are well-structured
+import "./About.css"; // Ensure styles are structured and responsive
 
 const About = () => {
   return (
     <div className="about-container">
       <h1 className="about-title">About HematoHub</h1>
+      
       <p className="about-description">
-        HematoHub is an advanced Blood Bank Management System designed to bridge the gap between blood donors, hospitals, and blood banks. Our platform ensures a seamless, efficient, and reliable blood donation process.
+        HematoHub is a comprehensive Blood Bank Management System committed to connecting blood donors, hospitals, and blood banks through a secure and streamlined digital platform. We aim to eliminate gaps in blood availability and ensure timely access for those in urgent need.
       </p>
 
       <h2 className="about-heading">Our Mission</h2>
       <p className="about-text">
-        Our mission is to enhance the accessibility and efficiency of blood donation by leveraging technology, ensuring that those in need receive timely assistance.
+        Our mission is to harness the power of technology to facilitate life-saving blood donations. HematoHub is designed to make the process efficient, accessible, and responsive—supporting critical healthcare needs across the community.
       </p>
 
-      <h2 className="about-heading">Key Features</h2>
+      <h2 className="about-heading">Core Features</h2>
       <ul className="about-list">
-        <li>Secure and seamless blood donor registration</li>
-        <li>Real-time blood inventory tracking</li>
-        <li>Efficient donor and hospital management</li>
-        <li>Automated notifications for low blood stock</li>
-        <li>Data-driven insights for better blood bank operations</li>
+        <li>Secure donor and hospital onboarding with validation</li>
+        <li>Real-time monitoring and management of blood inventory</li>
+        <li>Automated alerts for low blood stock and urgent requirements</li>
+        <li>Seamless coordination between hospitals and donors</li>
+        <li>Insightful analytics to optimize blood bank operations</li>
+        <li>Responsive interface optimized for all devices and internet conditions</li>
       </ul>
 
-      <h2 className="about-heading">Why Choose HematoHub?</h2>
+      <h2 className="about-heading">Why HematoHub?</h2>
       <p className="about-text">
-        HematoHub is built with a commitment to saving lives through technology. We provide a user-friendly and responsive platform optimized for all devices, ensuring quick access to critical blood donation services anytime, anywhere.
+        At HematoHub, we prioritize reliability, data integrity, and life-saving outcomes. Our platform is built with an emphasis on security, scalability, and user experience—ensuring that healthcare providers and donors can act swiftly when lives are on the line.
+      </p>
+
+      <p className="about-text">
+        Whether you’re a hospital seeking urgent blood support or a donor willing to make a difference, HematoHub is here to facilitate the connection with trust and transparency.
       </p>
     </div>
   );

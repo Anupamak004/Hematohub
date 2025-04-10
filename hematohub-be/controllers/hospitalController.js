@@ -52,57 +52,54 @@ export const registerHospital = async (req, res) => {
     
     // Send confirmation email
     const loginUrl = "http://localhost:3000/";
-    try {
-      await sendEmail(
-        email,
-        "Registration successful",
-        `<!DOCTYPE html>
-        <html>
-        <head>
-            <title>Welcome to HematoHub</title>
-        </head>
-        <body>
-            <div style="text-align:center; padding:20px; font-family:Arial, sans-serif;">
-                <h2 style="color:#28a745;">✔ Hospital Registration Successful!</h2>
-                <p>Dear <strong>${hospitalName} Team</strong>,</p>
-                <p>Welcome to <strong>HematoHub</strong>, your dedicated blood bank management system. Your hospital is now successfully registered.</p>
-                
-                <p>With HematoHub, you can:</p>
-                <ul style="display:inline-block; text-align:left; margin: 10px auto;">
-                    <li>✔ Manage your blood bank efficiently</li>
-                    <li>✔ Track blood inventory in real-time</li>
-                    <li>✔ Connect with eligible donors instantly</li>
-                    <li>✔ Request urgent blood donations when needed</li>
-                </ul>
+try {
+  await sendEmail(
+    email,
+    "Registration Successful",
+    `<!DOCTYPE html>
+    <html>
+    <head>
+      <title>Welcome to HematoHub</title>
+    </head>
+    <body>
+      <div style="text-align:center; padding:20px; font-family:Arial, sans-serif;">
+        <h2 style="color:#28a745;">Hospital Registration Successful</h2>
+        <p>Dear <strong>${hospitalName} Team</strong>,</p>
+        <p>Welcome to <strong>HematoHub</strong>, your dedicated blood bank management system. Your hospital is now successfully registered.</p>
+        
+        <p>With HematoHub, you can:</p>
+        <ul style="display:inline-block; text-align:left; margin: 10px auto;">
+          <li>Manage your blood bank efficiently</li>
+          <li>Track blood inventory in real-time</li>
+          <li>Connect with eligible donors instantly</li>
+          <li>Request urgent blood donations when needed</li>
+        </ul>
 
-                <div style="margin: 20px 0; padding: 10px; background-color:#f9f9f9; border-radius: 5px;">
-                    <h3>Your Hospital Details</h3>
-                    <p><strong>Hospital Name:</strong> ${hospitalName}</p>
-                    <p><strong>Registration Number:</strong> ${registrationNumber}</p>
-                    <p><strong>Contact:</strong> ${phoneNumber}</p>
-                </div>
+        <div style="margin: 20px 0; padding: 10px; background-color:#f9f9f9; border-radius: 5px;">
+          <h3>Your Hospital Details</h3>
+          <p><strong>Hospital Name:</strong> ${hospitalName}</p>
+          <p><strong>Registration Number:</strong> ${registrationNumber}</p>
+          <p><strong>Contact:</strong> ${phoneNumber}</p>
+        </div>
 
-                <p>You can now log in and start managing your hospital's blood bank.</p>
-                <a href="${loginUrl}" style="background-color:#2D89FF; color:white; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold; display:inline-block; margin-top:15px;">
-                    Access Hospital Dashboard
-                </a>
+        <p>You can now log in and start managing your hospital's blood bank through the HematoHub platform.</p>
 
-                <p style="color:#777; font-size:12px; margin-top:20px;">
-                    Thank you for joining HematoHub. Together, we save lives! ❤️
-                </p>
+        <p style="color:#777; font-size:12px; margin-top:20px;">
+          Thank you for joining HematoHub. Together, we save lives.
+        </p>
 
-                <p style="color:#999; font-size:11px;">© 2025 HematoHub Blood Bank Management System. All rights reserved.</p>
-            </div>
-        </body>
+        <p style="color:#999; font-size:11px;">© 2025 HematoHub Blood Bank Management System. All rights reserved.</p>
+      </div>
+    </body>
+    </html>`
+  );
 
-        </html>`
-      );
     } catch (emailError) {
       console.error("Failed to send registration email:", emailError);
       // Continue with registration even if email fails
     }
     
-    res.status(201).json({ message: "Hospital registration successful" });
+    res.status(201).json({ message: "Hospital registration successful",hospitalId: newHospital._id  });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "Server Error" });

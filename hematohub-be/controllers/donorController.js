@@ -81,45 +81,42 @@ export const registerDonor = async (req, res) => {
     await newDonor.save(); // Save updated eligibility status
 
     const loginUrl = "http://localhost:3000/";
-    try {
-      await sendEmail(
-        email,
-        "Donor Registration Successful",
-        `<!DOCTYPE html>
-        <html>
-        <head>
-    <title>Welcome to HematoHub - Registration Successful</title>
-</head>
-<body>
-    <div style="text-align:center; padding:20px; font-family:Arial, sans-serif;">
-        <h2 style="color:#28a745;">✔ Welcome to HematoHub!</h2>
+try {
+  await sendEmail(
+    email,
+    "Donor Registration Successful",
+    `<!DOCTYPE html>
+    <html>
+    <head>
+      <title>Welcome to HematoHub - Registration Successful</title>
+    </head>
+    <body>
+      <div style="text-align:center; padding:20px; font-family:Arial, sans-serif;">
+        <h2 style="color:#28a745;">Welcome to HematoHub</h2>
         <p>Dear <strong>${name}</strong>,</p>
         <p>Thank you for registering as a blood donor with <strong>HematoHub</strong>. Your commitment to saving lives is truly commendable.</p>
 
         <p>By joining HematoHub, you are now part of a lifesaving network that ensures blood is available to those in urgent need.</p>
 
         <div style="margin: 20px 0; padding: 10px; background-color:#f9f9f9; border-radius: 5px;">
-            <h3>Your Donor Details</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Blood Type:</strong> ${bloodType}</p>
-            <p><strong>Eligibility Status:</strong> ${newDonor.eligibility ? "✅ Eligible for Donation" : "❌ Currently Not Eligible"}</p>
+          <h3>Your Donor Details</h3>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Blood Type:</strong> ${bloodType}</p>
+          <p><strong>Eligibility Status:</strong> ${newDonor.eligibility ? "Eligible for Donation" : "Currently Not Eligible"}</p>
         </div>
 
-        <p>You can log in to your donor dashboard to manage your profile, track donation history, and receive urgent blood requests.</p>
-
-        <a href="${loginUrl}" style="background-color:#2D89FF; color:white; padding:12px 25px; border-radius:5px; text-decoration:none; font-weight:bold; display:inline-block; margin-top:15px;">
-            Access Your Donor Dashboard
-        </a>
+        <p>You can manage your profile, track donation history, and stay informed about urgent blood requests through HematoHub.</p>
 
         <p style="color:#777; font-size:12px; margin-top:20px;">
-            Thank you for being a hero. Your generosity saves lives! ❤️  
+          Thank you for being a part of this life-saving journey.
         </p>
 
         <p style="color:#999; font-size:11px;">© 2025 HematoHub Blood Bank Management System. All rights reserved.</p>
-    </div>
-</body>
-        </html>`
-      );
+      </div>
+    </body>
+    </html>`
+  );
+
     } catch (emailError) {
       console.error("Failed to send registration email:", emailError);
       // Continue with registration even if email fails
