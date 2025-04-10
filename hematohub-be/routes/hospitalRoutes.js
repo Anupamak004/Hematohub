@@ -7,6 +7,8 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import Hospital from "../models/hospital.js";
 import Donor from '../models/donor.js';
 import axios from 'axios';
+import { forgotPassword, resetPassword } from "../controllers/hospitalController.js";
+
 
 
 const router = express.Router();
@@ -14,7 +16,8 @@ const router = express.Router();
 router.post("/register", registerHospital);
 router.post("/login", loginHospital); // Add login route
 router.get("/dashboard", authenticateHospital, getHospitalDashboard); // Protected route
-
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 async function sendEmail(recipient, subject, content) {
   const apiKey = process.env.BREVO_API_KEY.trim();

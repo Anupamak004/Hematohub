@@ -8,6 +8,8 @@ import { getDonorById, updateDonor } from "../controllers/donorController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import Donor from "../models/donor.js"; // Import donor model
 import { calculateEligibility } from "../controllers/donorController.js";
+import { forgotPassword, resetPassword } from "../controllers/donorController.js";
+
 
 const router = express.Router();
 
@@ -16,6 +18,9 @@ router.get("/dashboard", authenticateDonor, getDonorDashboard);
 router.post("/login", loginDonor); // Add login route
 router.get("/:id", authMiddleware, getDonorById);
 router.put("/:id", authMiddleware, updateDonor);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+
 
 router.get("/:id", authMiddleware, async (req, res) => {
   try {

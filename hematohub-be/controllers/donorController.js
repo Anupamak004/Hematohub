@@ -229,3 +229,48 @@ export const updateDonor = async (req, res) => {
       res.status(500).json({ error: "Server error" });
   }
 };
+
+const resetCodes = {};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const donor = await Donor.findOne({ email });
+  if (!donor) return res.status(404).json({ message: "Email not found" });
+
+  const code = Math.floor(100000 + Math.random() * 900000); // 6-digit
+
+  resetCodes[email] = code; // Save code temporarily
+
+  try {
+    await sendEmail(
+      email,
+      "HematoHub Password Reset Code",
+      `<p>Your HematoHub password reset code is: <b>${code}</b></p>`
+    );
+    res.json({ message: "Reset code sent to email" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to send email" });
+  }
+};
+
+
+export const resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  if (resetCodes[email] != code) {
+    return res.status(400).json({ message: "Invalid code" });
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  const updated = await Donor.updateOne({ email }, { $set: { password: hashed } });
+
+  if (updated.modifiedCount === 0) {
+    return res.status(500).json({ message: "Failed to update password" });
+  }
+
+  delete resetCodes[email]; // Clean up
+  res.json({ message: "Password updated successfully" });
+};
+

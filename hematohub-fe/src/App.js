@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import Register from "./components/Register";
-import Login from "./components/Login";
+//import Login from "./components/Login";
 import DonorDashboard from "./components/DonorDashboard"; 
 import HospitalDashboard from "./components/HospitalDashboard"; 
 //import DonationHistory from "./components/DonationHistory"; 
@@ -27,7 +27,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+          {/*<Route path="/login" element={<Login />} />*/}
           <Route path="/donor-dashboard" element={<DonorDashboard />} /> 
           <Route path="/hospital-dashboard" element={<HospitalDashboard />} /> 
           {/*<Route path="/donation-history" element={<DonationHistory />} /> */}

@@ -66,6 +66,39 @@
   margin-bottom: 1rem;
 }
 
+.forgot-password {
+  margin-top: 1px;
+  font-size: 0.5rem;
+  color: #0c7842;
+  cursor: pointer;
+  text-align: center;
+}
+
+.forgot-password span {
+  color: #074727;
+  font-size: 1rem;
+}
+
+.forgot-password span:hover {
+  text-decoration: underline;
+}
+
+.account{
+  position: relative;
+  top: -17px;
+}
+
+.forgot-password span,
+.back-to-login span {
+  color: #064720;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .intro-content {
