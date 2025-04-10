@@ -210,15 +210,19 @@ router.post("/donate", async (req, res) => {
 // 🩸 Route to Add Received Blood Entry
 router.post("/receive", async (req, res) => {
   try {
-    const { receivedFrom, bloodType, receivedDate, units, hospitalId, dob, aadhaarLast4 } = req.body;
+    const {
+      receivedFrom,
+      bloodType,
+      receivedDate,
+      units,
+      hospitalId,
+      dob,
+      aadhaarLast4,
+      donorType,
+    } = req.body;
 
-    if (!receivedFrom || !bloodType || !units || !receivedDate || !hospitalId || !dob || !aadhaarLast4) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    // Validate Aadhaar (only last 4 digits)
-    if (!/^\d{4}$/.test(aadhaarLast4)) {
-      return res.status(400).json({ error: "Aadhaar number must be exactly 4 digits" });
+    if (!receivedFrom || !bloodType || !units || !receivedDate || !hospitalId || !donorType) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const hospital = await Hospital.findById(hospitalId);
@@ -226,51 +230,78 @@ router.post("/receive", async (req, res) => {
       return res.status(404).json({ error: "Hospital not found" });
     }
 
-    // Save received blood entry
-    const receivedBlood = new ReceivedBlood({
-      receivedFrom,
-      bloodType,
-      units,
-      receivedDate: new Date(receivedDate).toISOString(),
-      dob: new Date(dob).toISOString(), // Ensure valid date format
-      aadhaarLast4, // Only store last 4 digits
-      hospitalId
-    });
+    let receivedBlood;
 
-    await receivedBlood.save();
+    if (donorType === "person") {
+      if (!dob || !aadhaarLast4) {
+        return res.status(400).json({ error: "DOB and Aadhaar are required for person donors" });
+      }
 
-    // Update hospital's blood stock (increase stock)
-    hospital.bloodStock[bloodType] = (hospital.bloodStock[bloodType] || 0) + units;
+      if (!/^\d{4}$/.test(aadhaarLast4)) {
+        return res.status(400).json({ error: "Aadhaar must be 4 digits" });
+      }
+
+      receivedBlood = new ReceivedBlood({
+        receivedFrom,
+        bloodType,
+        units: Number(units),
+        receivedDate: new Date(receivedDate),
+        dob: new Date(dob),
+        aadhaarLast4,
+        hospitalId,
+        donorType,
+      });
+
+      await receivedBlood.save();
+
+      const donor = await Donor.findOne({
+        dob: new Date(dob),
+        aadhaarLast4,
+      });
+
+      if (donor) {
+        const lastDonationDate = new Date(receivedDate);
+        const nextEligibleDate = new Date(lastDonationDate);
+        nextEligibleDate.setDate(lastDonationDate.getDate() + 90);
+
+        donor.donationHistory.push({
+          previousDonationDate: lastDonationDate,
+          nextEligibleDate,
+        });
+
+        await donor.save();
+      }
+    } else if (donorType === "hospital") {
+      receivedBlood = new ReceivedBlood({
+        receivedFrom,
+        bloodType,
+        units: Number(units),
+        receivedDate: new Date(receivedDate),
+        hospitalId,
+        donorType,
+      });
+
+      await receivedBlood.save();
+    } else {
+      return res.status(400).json({ error: "Invalid donor type provided." });
+    }
+
+    // Update hospital blood stock
+    hospital.bloodStock[bloodType] = (hospital.bloodStock[bloodType] || 0) + Number(units);
     hospital.markModified("bloodStock");
     await hospital.save();
 
-    // ✅ Find donor by DOB and last 4 digits of Aadhaar
-    const donor = await Donor.findOne({ dob: new Date(dob).toISOString(), aadhaarLast4 });
-
-    if (donor) {
-      const lastDonationDate = new Date(receivedDate);
-      const nextEligibleDate = new Date(lastDonationDate);
-      nextEligibleDate.setDate(nextEligibleDate.getDate() + 90); // 3-month restriction
-
-      // Update donation history
-      donor.donationHistory.push({
-        previousDonationDate: lastDonationDate.toISOString(),
-        nextEligibleDate: nextEligibleDate.toISOString(),
-      });
-
-      await donor.save();
-    }
-
-    res.status(201).json({ 
-      message: "Received blood entry recorded successfully", 
+    res.status(201).json({
+      message: "Received blood entry recorded successfully",
       receivedBlood,
-      donorUpdated: donor ? true : false
     });
 
   } catch (error) {
+    console.error("💥 Server Error:", error); // Debug log
     res.status(500).json({ error: "Server error", details: error.message });
   }
 });
+
 
 
 

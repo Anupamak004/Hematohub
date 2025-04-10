@@ -37,6 +37,8 @@ const [aadhaarLast4, setAadhaarLast4] = useState("");
 const [donations, setDonations] = useState([]); // Define `donations`
   const [donorId, setDonorId] = useState(localStorage.getItem("donorId")); // Define `donorId`
   const [loading, setLoading] = useState(true);
+  const [donorType, setDonorType] = useState("person"); // or "hospital"
+
 
 
 
@@ -226,44 +228,50 @@ const [donations, setDonations] = useState([]); // Define `donations`
     }
   
     try {
-      // Step 1: Check if the donor exists based on DOB & Aadhaar
-      const donorResponse = await fetch(`http://localhost:5000/api/donors/check-donor`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dob, aadhaarLast4, receivedFrom, receivedBloodType }),
-      });
+      // If donorType is "person", do full donor validation and update
+      if (donorType === "person") {
+        // Step 1: Check if the donor exists based on DOB & Aadhaar
+        const donorResponse = await fetch(`http://localhost:5000/api/donors/check-donor`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dob, aadhaarLast4, receivedFrom, receivedBloodType }),
+        });
   
-      const donorData = await donorResponse.json();
+        const donorData = await donorResponse.json();
   
-      if (!donorResponse.ok || !donorData) {
-        alert("No donor found with the provided details.");
-        return;
+        if (!donorResponse.ok || !donorData) {
+          alert("No donor found with the provided details.");
+          return;
+        }
+  
+        // Step 2: Verify donor's name and blood type
+        if (donorData.donor.name !== receivedFrom || donorData.donor.bloodType !== receivedBloodType) {
+          alert("Donor details do not match. Please check the name and blood type.");
+          return;
+        }
+  
+        console.log("Verified Donor:", donorData.donor);
+  
+        // Step 3: Update Donor's Donation History
+        const donorUpdated = await handleUpdateDonation(donorData.donor._id);
+        if (!donorUpdated) {
+          alert("Donation history update failed. Blood reception not recorded.");
+          return;
+        }
       }
   
-      // Step 2: Verify donor's name and blood type
-      if (donorData.donor.name !== receivedFrom || donorData.donor.bloodType !== receivedBloodType) {
-        alert("Donor details do not match. Please check the name and blood type.");
-        return;
-      }
-  
-      console.log("Verified Donor:", donorData.donor);
-  
-      // Step 3: Update Donor's Donation History **FIRST**
-      const donorUpdated = await handleUpdateDonation(donorData.donor._id);
-      if (!donorUpdated) {
-        alert("Donation history update failed. Blood reception not recorded.");
-        return;
-      }
-  
-      // Step 4: Proceed with blood reception
+      // Step 4: Proceed with blood reception (common to both person & hospital)
       const newReceivedBlood = {
         receivedFrom,
         bloodType: receivedBloodType,
         receivedDate,
         units: Number(receivedUnits),
-        dob,
-        aadhaarLast4,
         hospitalId: hospitalData._id,
+        donorType,
+        ...(donorType === "person" && {
+          dob,
+          aadhaarLast4,
+        }),
       };
   
       const response = await fetch("http://localhost:5000/api/recipients/receive", {
@@ -280,6 +288,8 @@ const [donations, setDonations] = useState([]); // Define `donations`
   
         setReceivedBlood((prev) => [...prev, data.receivedBlood]);
         fetchReceivedBlood();
+  
+        // Clear form
         setReceivedFrom("");
         setReceivedBloodType("");
         setReceivedDate("");
@@ -290,9 +300,10 @@ const [donations, setDonations] = useState([]); // Define `donations`
         alert(data.error);
       }
     } catch (error) {
-      console.error("Error checking donor:", error);
+      console.error("Error submitting received blood:", error);
     }
   };
+  
   
   const handleUpdateDonation = async (donorId) => {
     const today = new Date().toISOString().split("T")[0];
@@ -612,52 +623,99 @@ const [donations, setDonations] = useState([]); // Define `donations`
     {/* Form for Adding Received Blood */}
     <div className="donation-form glass-card">
       <h3>Add Received Blood Entry</h3>
-      <form onSubmit={handleReceivedSubmit}>
-        <label>Donor Name:</label>
-        <input
-          type="text"
-          value={receivedFrom}
-          onChange={(e) => setReceivedFrom(e.target.value)}
-          required
-        />
+      <label>Donor Type:</label>
+<select value={donorType} onChange={(e) => setDonorType(e.target.value)} required>
+  <option value="person">Person</option>
+  <option value="hospital">Hospital</option>
+</select>
 
-        <label>Blood Type:</label>
-        <select value={receivedBloodType} onChange={(e) => setReceivedBloodType(e.target.value)} required>
-          <option value="">Select Blood Type</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-        </select>
+<form onSubmit={handleReceivedSubmit}>
+  {donorType === "person" ? (
+    <>
+      <label>Donor Name:</label>
+      <input
+        type="text"
+        value={receivedFrom}
+        onChange={(e) => setReceivedFrom(e.target.value)}
+        required
+      />
 
-        <label>Date of Birth:</label>
-<input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
+      <label>Blood Type:</label>
+      <select
+        value={receivedBloodType}
+        onChange={(e) => setReceivedBloodType(e.target.value)}
+        required
+      >
+        <option value="">Select Blood Type</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+      </select>
 
-<label>Aadhaar (Last 4 Digits):</label>
-<input
-  type="text"
-  value={aadhaarLast4}
-  onChange={(e) => {
-    const value = e.target.value.replace(/\D/g, ""); // Allow only digits
-    if (value.length <= 4) setAadhaarLast4(value);
-  }}
-  maxLength="4"
-  required
-/>
+      <label>Date of Birth:</label>
+      <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
 
+      <label>Aadhaar (Last 4 Digits):</label>
+      <input
+        type="text"
+        value={aadhaarLast4}
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, "");
+          if (value.length <= 4) setAadhaarLast4(value);
+        }}
+        maxLength="4"
+        required
+      />
 
-        <label>Donated Date:</label>
-        <input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} required />
+      <label>Donated Date:</label>
+      <input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} required />
 
-        <label>Units:</label>
-        <input type="number" value={receivedUnits} onChange={(e) => setReceivedUnits(e.target.value)} required />
+      <label>Units:</label>
+      <input type="number" value={receivedUnits} onChange={(e) => setReceivedUnits(e.target.value)} required />
+    </>
+  ) : (
+    <>
+      <label>Hospital Name:</label>
+      <input
+        type="text"
+        value={receivedFrom}
+        onChange={(e) => setReceivedFrom(e.target.value)}
+        required
+      />
 
-        <button type="submit">Add Donor Details</button>
-      </form>
+      <label>Blood Type:</label>
+      <select
+        value={receivedBloodType}
+        onChange={(e) => setReceivedBloodType(e.target.value)}
+        required
+      >
+        <option value="">Select Blood Type</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+      </select>
+
+      <label>Donated Date:</label>
+      <input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} required />
+
+      <label>Units:</label>
+      <input type="number" value={receivedUnits} onChange={(e) => setReceivedUnits(e.target.value)} required />
+    </>
+  )}
+
+  <button type="submit">Add Donor Details</button>
+</form>
+
     </div>
 
     {/* Summary Table */}
@@ -700,7 +758,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
       <table>
       <thead>
   <tr>
-    <th>Donor Name</th>
+    <th>Name</th>
     <th>Blood Type</th>
     <th>Date</th>
     <th>Units</th>
@@ -715,8 +773,16 @@ const [donations, setDonations] = useState([]); // Define `donations`
       <td>{entry.bloodType || "Unknown"}</td>
       <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-US") : "Unknown"}</td>
       <td>{entry.units || 0}</td>
-      <td>{entry.dob ? new Date(entry.dob).toLocaleDateString("en-US") : "Unknown"}</td>
-      <td>**** **** **** {entry.aadhaarLast4 || "XXXX"}</td>
+      <td>
+        {entry.dob
+          ? new Date(entry.dob).toLocaleDateString("en-US")
+          : "N/A"}
+      </td>
+      <td>
+        {entry.aadhaarLast4
+          ? `**** **** **** ${entry.aadhaarLast4}`
+          : "N/A"}
+      </td>
     </tr>
   ))}
 </tbody>
