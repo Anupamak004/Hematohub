@@ -47,6 +47,8 @@ export const registerHospital = async (req, res) => {
     let hospitalExists = await Hospital.findOne({ email });
     if (hospitalExists) return res.status(400).json({ error: "Hospital already registered" });
     
+    req.body.country = "India";
+
     // Create the new hospital
     const newHospital = await Hospital.create(req.body);
     

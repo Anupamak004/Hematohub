@@ -57,7 +57,7 @@ const Register = () => {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zip, setZip] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState("India");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [bloodBankAvailable, setBloodBankAvailable] = useState(false);
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -432,10 +432,14 @@ const Register = () => {
 
       <div className="input-box">
         <label>Country <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>
-        <input type="text" placeholder="Country" value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          required pattern="^[A-Za-z\s]+$"
-        />
+        <input
+    type="text"
+    placeholder="Country"
+    value="India"           // ✅ Hardcoded value
+    readOnly               // ✅ Prevent user editing
+    required
+    pattern="^[A-Za-z\s]+$"
+  />
       </div>
 
       <label className="input-box-label">Blood Bank Details <span style={{ color: "red", fontSize: "20px", fontWeight: "bold" }}>*</span></label>

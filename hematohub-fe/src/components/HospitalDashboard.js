@@ -39,6 +39,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
   const [loading, setLoading] = useState(true);
   const [donorType, setDonorType] = useState("person"); // or "hospital"
 
+  
 
 
 
@@ -591,6 +592,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
         <th>Units</th>
       </tr>
     </thead>
+
     <tbody>
   {Array.isArray(donatedBlood) && donatedBlood.length > 0 ? (
     donatedBlood
@@ -599,7 +601,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
         <tr key={index}>
           <td>{donation.recipientName || "Unknown"}</td>
           <td>{donation.bloodType || "Unknown"}</td>
-          <td>{donation.date ? new Date(donation.date).toLocaleDateString("en-US") : "Unknown"}</td>
+          <td>{donation.date ? new Date(donation.date).toLocaleDateString("en-IN") : "Unknown"}</td>
           <td>{donation.units || 0}</td>
         </tr>
       ))
@@ -762,8 +764,7 @@ const [donations, setDonations] = useState([]); // Define `donations`
     <th>Blood Type</th>
     <th>Date</th>
     <th>Units</th>
-    <th>DOB</th>
-    <th>Aadhaar (Last 4)</th>
+    
   </tr>
 </thead>
 <tbody>
@@ -771,18 +772,8 @@ const [donations, setDonations] = useState([]); // Define `donations`
     <tr key={index}>
       <td>{entry.receivedFrom || "Unknown"}</td>
       <td>{entry.bloodType || "Unknown"}</td>
-      <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-US") : "Unknown"}</td>
+      <td>{entry.receivedDate ? new Date(entry.receivedDate).toLocaleDateString("en-IN") : "Unknown"}</td>
       <td>{entry.units || 0}</td>
-      <td>
-        {entry.dob
-          ? new Date(entry.dob).toLocaleDateString("en-US")
-          : "N/A"}
-      </td>
-      <td>
-        {entry.aadhaarLast4
-          ? `**** **** **** ${entry.aadhaarLast4}`
-          : "N/A"}
-      </td>
     </tr>
   ))}
 </tbody>
